@@ -1,0 +1,29 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100.000000" height="100.000000" fill="none">
+	<defs>
+		<clipPath id="clipPath_1">
+			<rect width="21.000000" height="21.000000" x="38.000000" y="39.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+		<g id="pixso_custom_effect_1">
+			<effect x="0.000000" y="4.000000" visibility="visible" fill="rgb(0,0,0)" fill-opacity="0.25" effectType="dropShadow" stdDeviation="4" radius="0" />
+		</g>
+		<filter id="filter_1" width="111.000000" height="111.000000" x="-5.000000" y="-2.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_1)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feColorMatrix result="hardAlpha" in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4.34783 0 " />
+			<feOffset dx="0.000000" dy="4.000000" in="hardAlpha" />
+			<feGaussianBlur stdDeviation="1.33333337" />
+			<feComposite k2="-1" k3="1" in2="hardAlpha" operator="out" />
+			<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0 " />
+			<feBlend result="effect_dropShadow_1" in2="BackgroundImageFix" mode="normal" />
+			<feBlend result="shape" in="SourceGraphic" in2="effect_dropShadow_1" mode="normal" />
+		</filter>
+	</defs>
+	<rect id="musilab" width="100.000000" height="100.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" />
+	<g id="M" customFrame="url(#clipPath_1)">
+		<rect id="M" width="21.000000" height="21.000000" x="38.000000" y="39.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+		<path id="" d="M85.4022 13.8047L85.4022 81L78.5819 81L78.5819 27.2344L52.1912 72.4453L48.8162 72.4453L22.4256 27.5391L22.4256 81L15.6053 81L15.6053 13.8047L21.4647 13.8047L50.6444 63.6328L79.5428 13.8047L85.4022 13.8047Z" fill="rgb(0,0,0)" fill-rule="nonzero" />
+	</g>
+	<g filter="url(#filter_1)">
+		<path id="矩形 1" d="M4 3L97 3L97 96L4 96L4 3Z" fill="rgb(182,182,182)" fill-opacity="0.230000004" fill-rule="evenodd" />
+		<path id="矩形 1" d="M4 3L97 3L97 96L4 96L4 3ZM9 8L9 91L92 91L92 8L9 8Z" fill="rgb(0,0,0)" fill-rule="evenodd" />
+	</g>
+</svg>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>产品中心 - Musilab Audio</title>
+    <link rel="stylesheet" href="fontawesome-5.5/css/all.min.css" />
+    <link rel="stylesheet" href="slick/slick.css">
+    <link rel="stylesheet" href="slick/slick-theme.css">
+    <link rel="stylesheet" href="magnific-popup/magnific-popup.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/tooplate-infinite-loop.css" />
+    <style>
+      .category-btn {
+        margin-right: 10px;
+        margin-bottom: 10px;
+        padding: 8px 20px;
+        border: 1px solid #369;
+        background: white;
+        color: #369;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+      .category-btn.active, .category-btn:hover {
+        background: #369;
+        color: white;
+      }
+      
+      .product-item {
+        margin-bottom: 30px;
+      }
+      
+      .product-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(54, 102, 153, 0.2);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .product-card:hover {
+        box-shadow: 0 8px 25px rgba(54, 102, 153, 0.15);
+        transform: translateY(-3px);
+      }
+      
+      .product-card-img-wrapper {
+        width: 100%;
+        padding-top: 100%;
+        position: relative;
+        background: #f8f9fa;
+      }
+      
+      .product-card-img-wrapper img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      
+      .product-card-body {
+        padding: 1.25rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .product-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .product-card-category {
+        display: inline-block;
+        padding: 2px 10px;
+        background: rgba(54, 102, 153, 0.1);
+        color: #369;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .product-card-description {
+        flex: 1;
+        font-size: 0.875rem;
+        color: #666;
+        line-height: 1.5;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        margin-bottom: 0.75rem;
+      }
+      
+
+      
+      .product-link {
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+      }
+      
+      .product-link:hover {
+        opacity: 0.8;
+      }
+      
+      @media (max-width: 768px) {
+        .category-btn {
+          padding: 6px 14px;
+          font-size: 12px;
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .product-card-body {
+          padding: 1rem;
+        }
+        
+        .product-card-title {
+          font-size: 1rem;
+        }
+        
+        .product-card-price {
+          font-size: 1.1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>    
+    <section id="infinite" class="text-white tm-font-big tm-parallax" style="height: 250px;">
+      <nav class="navbar navbar-expand-md tm-navbar" id="tmNav">              
+        <div class="container">   
+          <div class="tm-next">
+              <a href="index.html" class="navbar-brand">Musilab Audio</a>
+          </div>             
+            
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars navbar-toggler-icon"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en">首页</a>
+              </li>
+              <li class="nav-item active">
+                  <a class="nav-link tm-nav-link" href="/en/products">产品中心</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en#about">关于我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en#contact">联系我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn/products">中文</a>
+              </li>                    
+            </ul>
+          </div>        
+        </div>
+      </nav>
+      
+      <div class="text-center tm-hero-text-container">
+        <div class="tm-hero-text-container-inner">
+            <h2 class="tm-hero-title">产品中心</h2>
+            <p class="tm-hero-subtitle">探索我们的全部产品系列</p>
+        </div>        
+      </div>
+    </section>
+
+    <section id="products" class="tm-section-pad-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-3 col-md-4 mb-4">
+            <h3 class="tm-text-primary mb-4">产品分类</h3>
+            <div class="category-list" id="categoryList">
+              <button class="category-btn active" onclick="filterProductsByCategory('all')">全部产品</button>
+              <button class="category-btn" disabled>加载中...</button>
+            </div>
+          </div>
+          <div class="col-lg-9 col-md-8">
+            <div class="row" id="productGrid">
+              <div class="col-md-6 col-lg-4 product-item">
+                <div class="product-card">
+                  <div class="product-card-img-wrapper">
+                    <img src="img/infinite-loop-01.jpg" alt="产品图片">
+                  </div>
+                  <div class="product-card-body">
+                    <h5 class="product-card-title">加载中...</h5>
+                    <span class="product-card-category">加载中</span>
+                    <p class="product-card-description">正在加载产品信息...</p>
+                    <p class="product-card-price">¥0</p>
+                    <button class="product-card-btn">查看详情</button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-4 product-item">
+                <div class="product-card">
+                  <div class="product-card-img-wrapper">
+                    <img src="img/infinite-loop-01.jpg" alt="产品图片">
+                  </div>
+                  <div class="product-card-body">
+                    <h5 class="product-card-title">加载中...</h5>
+                    <span class="product-card-category">加载中</span>
+                    <p class="product-card-description">正在加载产品信息...</p>
+                    <p class="product-card-price">¥0</p>
+                    <button class="product-card-btn">查看详情</button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-4 product-item">
+                <div class="product-card">
+                  <div class="product-card-img-wrapper">
+                    <img src="img/infinite-loop-01.jpg" alt="产品图片">
+                  </div>
+                  <div class="product-card-body">
+                    <h5 class="product-card-title">加载中...</h5>
+                    <span class="product-card-category">加载中</span>
+                    <p class="product-card-description">正在加载产品信息...</p>
+                    <p class="product-card-price">¥0</p>
+                    <button class="product-card-btn">查看详情</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="tm-section-pad-top">
+      <div class="container tm-container-contact">
+        <div class="row">
+            <div class="text-center col-12">
+                <h2 class="tm-section-title mb-6">Contact Us</h2>
+            </div>
+            
+            <div class="col-sm-12 col-md-6 offset-md-3">
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-phone-square mr-4"></i>
+                  <div>
+                    <p class="mb-0">Tel: +86-769-38996619</p>
+                    <p>Fax: +86-769-87869070</p>
+                  </div>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-globe mr-4"></i>
+                  <span class="mb-0">Website: www.musilabaudio.com</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-map-marker-alt mr-4"></i>
+                  <span>Address: No.5 Huanwei Street, Fugang, Qingxi Town, Dongguan, Guangdong, China</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="far fa-2x fa-envelope mr-4"></i>
+                  <div>
+                    <p class="mb-0">Email: kenny@musilab.com.cn</p>
+                    <p>annie@musilab.com.cn</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center small tm-footer">
+          <p class="mb-0">
+          Copyright &copy; 2024 Musilab Audio. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </section>
+    
+    <script src="js/jquery-3.7.1.min.js"></script>     
+    <script src="slick/slick.min.js"></script>
+    <script src="magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="js/easing.min.js"></script>
+    <script src="js/jquery.singlePageNav.min.js"></script>     
+    <script src="js/bootstrap.min.js"></script> 
+    <script>
+      $(function(){
+        $(window).scroll(function(e){          
+          if($(document).scrollTop() > 120) {
+            $('.tm-navbar').addClass("scroll");
+          } else {
+            $('.tm-navbar').removeClass("scroll");
+          }
+        });
+        
+        $('#tmNav a').on('click', function(){
+          $('.navbar-collapse').removeClass('show'); 
+        });
+
+        loadCategories();
+        loadProducts();
+      });
+
+      var allProducts = [];
+      var allCategories = [];
+
+      function loadCategories() {
+        $.ajax({
+          url: '/api/category/list',
+          type: 'GET',
+          success: function(response) {
+            if (response.code === 200 && response.data) {
+              allCategories = response.data;
+              renderCategories();
+            }
+          },
+          error: function() {
+            console.log('加载类别数据失败');
+            $('#categoryList').html('<button class="category-btn active" onclick="filterProductsByCategory(\'all\')">全部产品</button><button class="category-btn">加载失败</button>');
+          }
+        });
+      }
+
+      function renderCategories() {
+        var html = '<button class="category-btn active" onclick="filterProductsByCategory(\'all\')">全部产品</button>';
+        for (var i = 0; i < allCategories.length; i++) {
+          var category = allCategories[i];
+          html += '<button class="category-btn" onclick="filterProductsByCategory(' + category.id + ')">' + category.name + '</button>';
+        }
+        $('#categoryList').html(html);
+      }
+
+      function loadProducts() {
+        $.ajax({
+          url: '/api/product/list',
+          type: 'GET',
+          success: function(response) {
+            if (response.code === 200 && response.data) {
+              allProducts = response.data;
+              renderProducts(allProducts);
+            }
+          },
+          error: function() {
+            console.log('加载产品数据失败');
+          }
+        });
+      }
+
+      function renderProducts(products) {
+        var html = '';
+        for (var i = 0; i < products.length; i++) {
+          var product = products[i];
+          var imageUrl = product.imageUrl || 'img/infinite-loop-01.jpg';
+          var name = product.name || '';
+          var categoryName = product.categoryName || '未分类';
+          var description = product.description || '';
+          var detailUrl = 'product-detail.html?id=' + product.id;
+          
+          html += '<div class="col-md-6 col-lg-4 product-item">' +
+                  '<div class="product-card">' +
+                  '<a href="' + detailUrl + '" class="product-link product-card-img-wrapper">' +
+                  '<img src="' + imageUrl + '" alt="' + name + '">' +
+                  '</a>' +
+                  '<div class="product-card-body">' +
+                  '<a href="' + detailUrl + '" class="product-link product-card-title">' + name + '</a>' +
+                  '<span class="product-card-category">' + categoryName + '</span>' +
+                  '<p class="product-card-description">' + description + '</p>' +
+                  '</div>' +
+                  '</div>' +
+                  '</div>';
+        }
+        $('#productGrid').html(html);
+      }
+
+      function filterProductsByCategory(categoryId) {
+        $('.category-btn').removeClass('active');
+        event.target.classList.add('active');
+        
+        if (categoryId === 'all') {
+          renderProducts(allProducts);
+        } else {
+          var filtered = allProducts.filter(function(p) {
+            return p.categoryId === categoryId;
+          });
+          renderProducts(filtered);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>{{META_TITLE}}</title>
+    <meta name="description" content="{{META_DESCRIPTION}}" />
+    <meta name="keywords" content="{{META_KEYWORDS}}" />
+    <link rel="canonical" href="{{META_CANONICAL}}" />
+    {{HREFLANG_LINKS}}
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    {{SOCIAL_META}}
+    {{JSON_LD}}
+    <link rel="stylesheet" href="/fontawesome-5.5/css/all.min.css" />
+    <link rel="stylesheet" href="/slick/slick.css">
+    <link rel="stylesheet" href="/slick/slick-theme.css">
+    <link rel="stylesheet" href="/magnific-popup/magnific-popup.css">
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/raleway.css" />
+    <link rel="stylesheet" href="/css/tooplate-infinite-loop.css" />
+    <link rel="stylesheet" href="/css/musilab-custom.css" />
+    <link rel="stylesheet" href="/css/musilab-theme.css" />
+  </head>
+  <body>    
+    <section id="infinite" class="text-white tm-font-big tm-parallax">
+      <nav class="navbar navbar-expand-md tm-navbar" id="tmNav">              
+        <div class="container">   
+          <div class="tm-next">
+              <a href="/cn" class="navbar-brand">Musilab Audio</a>
+          </div>             
+            
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars navbar-toggler-icon"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item active">
+                  <a class="nav-link tm-nav-link external-link" href="/cn">首页</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link external-link" href="/cn/products">产品中心</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="#about">关于我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="#contact">联系我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link external-link" href="/en">English</a>
+              </li>                    
+            </ul>
+          </div>        
+        </div>
+      </nav>
+      
+      <div class="text-center tm-hero-text-container">
+        <div class="tm-hero-text-container-inner">
+            <h2 class="tm-hero-title">Musilab Audio</h2>
+            <p class="tm-hero-subtitle">
+              卓越音质，无限可能
+              <br>Premium Audio Equipment
+            </p>
+        </div>        
+      </div>
+
+      <div class="tm-next tm-intro-next">
+        <a href="#features" class="text-center tm-down-arrow-link">
+          <i class="fas fa-2x fa-arrow-down tm-down-arrow"></i>
+        </a>
+      </div>      
+    </section>
+
+    <section id="features" class="tm-section-pad-top">
+      <div class="container">
+        <div class="row tm-content-box">
+            <div class="col-lg-12 col-xl-12">
+                <div class="tm-intro-text-container text-center">
+                    <h2 class="tm-text-primary mb-4 tm-section-title">卓越品质，深耕海外市场</h2>
+                    <p class="mb-4 tm-intro-text">
+                      专注无线音频领域，为全球用户提供高品质音频体验。
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row tm-content-box">
+            <div class="col-lg-4">
+                <div class="text-center">
+                    <i class="fas fa-3x fa-award text-center tm-icon mb-4"></i>
+                    <h3 class="tm-text-primary mb-3">卓越品质</h3>
+                    <p class="tm-intro-text">18人专业研发团队，涵盖驱动单元、木箱、电子等全系统研发。</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="text-center">
+                    <i class="fas fa-3x fa-globe text-center tm-icon mb-4"></i>
+                    <h3 class="tm-text-primary mb-3">海外市场</h3>
+                    <p class="tm-intro-text">深耕海外市场多年，产品远销全球多个国家和地区。</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="text-center">
+                    <i class="fas fa-3x fa-headphones text-center tm-icon mb-4"></i>
+                    <h3 class="tm-text-primary mb-3">专业音频</h3>
+                    <p class="tm-intro-text">无线户外/室内音箱、WiFi多房间音频系统、Hi-Fi音箱等。</p>
+                </div>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="popular" class="tm-section-pad-top">
+      <div class="container">
+        <div class="row">
+          <div class="text-center col-12">
+              <h2 class="tm-text-primary tm-section-title mb-4">热门产品</h2>
+              <p class="mx-auto tm-section-desc">
+                精选热门产品，为您带来卓越的听觉体验
+              </p>
+          </div>            
+        </div>
+        <div class="row" id="productList">
+          {{PRODUCT_GRID}}
+        </div>
+        <div class="text-center mt-4">
+          <a href="/cn/products" class="tm-btn-primary">查看全部产品</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="tm-section-pad-top">      
+      <div class="container tm-testimonials-content">
+        <div class="row">
+          <div class="col-lg-8 mx-auto tm-content-box text-center">
+            <h2 class="text-white text-center mb-6 tm-section-title">关于我们</h2>
+            <p class="mx-auto tm-section-desc text-white" style="line-height: 1.8; font-size: 1.1rem;">
+                Musilab自2002年起专注无线音频领域，致力于智能音箱的研发。
+                我们拥有18人的专业研发团队，涵盖驱动单元、木壳、电子等全系统研发。
+            </p>
+            <p class="mx-auto tm-section-desc text-white mt-5" style="line-height: 1.8; font-size: 1.1rem;">
+                主要产品包括无线户外/室内音箱、WiFi多房间音频系统、蓝牙便携音箱、
+                Hi-Fi音箱系统、监听音箱、高端便携蓝牙音箱、无线花园音箱以及带数字功放解决方案的DAB音箱。
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="tm-bg-overlay"></div>
+    </section>
+
+    <section id="contact" class="tm-section-pad-top">
+      <div class="container tm-container-contact">
+        <div class="row">
+            <div class="text-center col-12">
+                <h2 class="tm-section-title mb-6">联系我们</h2>
+            </div>
+            
+            <div class="col-sm-12 col-md-6 offset-md-3">
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-phone-square mr-4"></i>
+                  <div>
+                    <p class="mb-0">电话: +86-769-38996619</p>
+                    <p>传真: +86-769-87869070</p>
+                  </div>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-globe mr-4"></i>
+                  <span class="mb-0">网站: www.musilabaudio.com</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-map-marker-alt mr-4"></i>
+                  <span>地址: 广东省东莞市清溪镇浮岗环卫街5号</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="far fa-2x fa-envelope mr-4"></i>
+                  <div>
+                    <p class="mb-0">邮箱: kenny@musilab.com.cn</p>
+                    <p>annie@musilab.com.cn</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center small tm-footer">
+          <p class="mb-0">
+          Copyright &copy; <span id="copyright-year"></span> Musilab Audio. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </section>
+    
+    <script src="/js/jquery-3.7.1.min.js"></script>
+    <script src="/slick/slick.min.js"></script>
+    <script src="/magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="/js/easing.min.js"></script>
+    <script src="/js/jquery.singlePageNav.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/musilab-common.js"></script>
+    <script>
+      $(function(){
+        initParallax();
+        $('#tmNav').singlePageNav({
+          'easing': 'easeInOutExpo',
+          'speed': 600,
+          'filter': ':not(.external-link)'
+        });
+      });
+    </script>
+  </body>
+</html>

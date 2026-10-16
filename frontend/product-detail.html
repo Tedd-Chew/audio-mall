@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>产品详情 - Musilab Audio</title>
+    <link rel="stylesheet" href="fontawesome-5.5/css/all.min.css" />
+    <link rel="stylesheet" href="slick/slick.css">
+    <link rel="stylesheet" href="slick/slick-theme.css">
+    <link rel="stylesheet" href="magnific-popup/magnific-popup.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/tooplate-infinite-loop.css" />
+    <style>
+      .product-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        background: #e8f4fd;
+        color: #369;
+        border-radius: 15px;
+        font-size: 14px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+      
+      .product-detail-text {
+        line-height: 1.8;
+        white-space: pre-wrap;
+        color: #555;
+        font-size: 15px;
+      }
+      
+      .product-gallery {
+        width: 100%;
+        margin-bottom: 30px;
+      }
+      
+      .gallery-main {
+        width: 100%;
+        height: 400px;
+        background: #f8f9fa;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      
+      .gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      
+      .gallery-thumbs {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+      }
+      
+      .gallery-thumb {
+        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.3s;
+      }
+      
+      .gallery-thumb.active {
+        border-color: #369;
+      }
+      
+      .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .gallery-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.3);
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+      }
+      
+      .gallery-nav:hover {
+        background: rgba(0, 0, 0, 0.5);
+      }
+      
+      .gallery-nav-prev {
+        left: 20px;
+      }
+      
+      .gallery-nav-next {
+        right: 20px;
+      }
+      
+      .related-product-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: none;
+        border-radius: 4px;
+        overflow: hidden;
+        background: transparent;
+      }
+      
+      .related-product-card-img-wrapper {
+        width: 100%;
+        padding-top: 70%;
+        position: relative;
+        background: #f8f9fa;
+        border-radius: 4px;
+      }
+      
+      .related-product-card-img-wrapper img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      
+      .related-product-card .card-body {
+        padding: 0.5rem 0;
+      }
+      
+      .related-product-card .card-title {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #333;
+      }
+      
+      .related-product-card .card-title:hover {
+        color: #369;
+      }
+      
+      .related-link {
+        text-decoration: none;
+      }
+      
+      @media (max-width: 768px) {
+        .gallery-main {
+          height: 280px;
+        }
+        
+        .gallery-thumb {
+          width: 60px;
+          height: 60px;
+        }
+        
+        .related-product-card img {
+          height: 120px;
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .gallery-main {
+          height: 200px;
+        }
+        
+        .gallery-thumb {
+          width: 50px;
+          height: 50px;
+        }
+        
+        .gallery-nav {
+          width: 30px;
+          height: 30px;
+          font-size: 14px;
+        }
+        
+        .gallery-nav-prev {
+          left: 10px;
+        }
+        
+        .gallery-nav-next {
+          right: 10px;
+        }
+        
+        .related-product-card img {
+          height: 100px;
+        }
+      }
+    </style>
+  </head>
+  <body>    
+    <section id="infinite" class="text-white tm-font-big tm-parallax" style="height: 250px;">
+      <nav class="navbar navbar-expand-md tm-navbar" id="tmNav">              
+        <div class="container">   
+          <div class="tm-next">
+              <a href="index.html" class="navbar-brand">Musilab Audio</a>
+          </div>             
+            
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars navbar-toggler-icon"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en">首页</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en/products">产品中心</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en#about">关于我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en#contact">联系我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn/products/detail?id={{PRODUCT_ID}}">中文</a>
+              </li>                    
+            </ul>
+          </div>        
+        </div>
+      </nav>
+    </section>
+
+    <section id="product-detail" class="tm-section-pad-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-md-12">
+            <div class="product-gallery" id="productGallery">
+              <div class="gallery-main" id="galleryMain">
+                <img src="img/infinite-loop-01.jpg" alt="产品图片">
+                <button class="gallery-nav gallery-nav-prev" onclick="prevImage()">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="gallery-nav gallery-nav-next" onclick="nextImage()">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="gallery-thumbs" id="galleryThumbs">
+                <div class="gallery-thumb active">
+                  <img src="img/infinite-loop-01.jpg" alt="缩略图">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-12">
+            <h1 id="productName" class="tm-text-primary">加载中...</h1>
+            <div id="productTags" class="mt-4">
+            </div>
+            <div class="mt-4">
+              <span class="text-muted">价格</span>
+              <h2 id="productPrice" class="text-primary">¥0.00</h2>
+            </div>
+            <p id="productDescription" class="mt-4 text-muted">
+            </p>
+            <div class="mt-6">
+              <a href="products.html" class="tm-btn-primary">返回产品列表</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-8">
+          <div class="col-lg-12">
+            <h2 class="tm-text-primary mb-4">产品详情</h2>
+            <div id="productDetail" class="bg-light p-4 rounded-lg">
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-8">
+          <div class="col-lg-12">
+            <h2 class="tm-text-primary mb-4">相关产品</h2>
+            <div class="row" id="relatedProducts">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="tm-section-pad-top">
+      <div class="container tm-container-contact">
+        <div class="row">
+            <div class="text-center col-12">
+                <h2 class="tm-section-title mb-6">Contact Us</h2>
+            </div>
+            
+            <div class="col-sm-12 col-md-6 offset-md-3">
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-phone-square mr-4"></i>
+                  <div>
+                    <p class="mb-0">Tel: +86-769-38996619</p>
+                    <p>Fax: +86-769-87869070</p>
+                  </div>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-globe mr-4"></i>
+                  <span class="mb-0">Website: www.musilabaudio.com</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-map-marker-alt mr-4"></i>
+                  <span>Address: No.5 Huanwei Street, Fugang, Qingxi Town, Dongguan, Guangdong, China</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="far fa-2x fa-envelope mr-4"></i>
+                  <div>
+                    <p class="mb-0">Email: kenny@musilab.com.cn</p>
+                    <p>annie@musilab.com.cn</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center small tm-footer">
+          <p class="mb-0">
+          Copyright &copy; 2024 Musilab Audio. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </section>
+    
+    <script src="js/jquery-3.7.1.min.js"></script>     
+    <script src="slick/slick.min.js"></script>
+    <script src="magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="js/easing.min.js"></script>
+    <script src="js/jquery.singlePageNav.min.js"></script>     
+    <script src="js/bootstrap.min.js"></script> 
+    <script>
+      var currentImageIndex = 0;
+      var imageUrls = [];
+      
+      $(function(){
+        $(window).scroll(function(e){          
+          if($(document).scrollTop() > 120) {
+            $('.tm-navbar').addClass("scroll");
+          } else {
+            $('.tm-navbar').removeClass("scroll");
+          }
+        });
+        
+        $('#tmNav a').on('click', function(){
+          $('.navbar-collapse').removeClass('show'); 
+        });
+
+        loadProductDetail();
+        loadRelatedProducts();
+      });
+
+      function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+      }
+
+      function loadProductDetail() {
+        var productId = getUrlParameter('id');
+        if (!productId) {
+          productId = 1;
+        }
+
+        $.ajax({
+          url: '/api/product/' + productId,
+          type: 'GET',
+          success: function(response) {
+            console.log('Product API Response:', response);
+            if (response.code === 200 && response.data) {
+              var product = response.data;
+              
+              $('#productName').text(product.name || '');
+              $('#productPrice').text('¥' + (product.price || 0));
+              $('#productDescription').text(product.description || '暂无描述');
+
+              renderImages(product);
+              renderTags(product);
+              renderDetail(product);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.log('加载产品详情失败:', status, error);
+          }
+        });
+      }
+
+      function renderImages(product) {
+        imageUrls = [];
+        
+        if (product.imageUrl) {
+          imageUrls.push(product.imageUrl);
+        }
+        
+        if (product.imageList) {
+          try {
+            var listUrls = JSON.parse(product.imageList);
+            if (Array.isArray(listUrls)) {
+              imageUrls = imageUrls.concat(listUrls);
+            }
+          } catch (e) {
+            var listUrls = product.imageList.split(',');
+            imageUrls = imageUrls.concat(listUrls);
+          }
+        }
+        
+        if (!imageUrls || imageUrls.length === 0) {
+          imageUrls = ['img/infinite-loop-01.jpg'];
+        }
+
+        imageUrls = imageUrls.filter(function(url) { return url && url.trim(); });
+        currentImageIndex = 0;
+
+        if (imageUrls.length > 0) {
+          $('#galleryMain img').attr('src', imageUrls[0]);
+          
+          var thumbsHtml = '';
+          for (var i = 0; i < imageUrls.length; i++) {
+            var activeClass = i === 0 ? 'active' : '';
+            thumbsHtml += '<div class="gallery-thumb ' + activeClass + '" onclick="showImage(' + i + ')"><img src="' + imageUrls[i].trim() + '" alt="缩略图' + (i+1) + '"></div>';
+          }
+          $('#galleryThumbs').html(thumbsHtml);
+        }
+
+        if (imageUrls.length > 1) {
+          startAutoPlay();
+        }
+      }
+
+      var autoPlayTimer = null;
+      
+      function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayTimer = setInterval(function() {
+          nextImage();
+        }, 4000);
+      }
+      
+      function stopAutoPlay() {
+        if (autoPlayTimer) {
+          clearInterval(autoPlayTimer);
+          autoPlayTimer = null;
+        }
+      }
+      
+      function showImage(index) {
+        if (index >= 0 && index < imageUrls.length) {
+          currentImageIndex = index;
+          $('#galleryMain img').attr('src', imageUrls[index]);
+          $('.gallery-thumb').removeClass('active');
+          $('.gallery-thumb').eq(index).addClass('active');
+        }
+      }
+      
+      function prevImage() {
+        stopAutoPlay();
+        currentImageIndex = (currentImageIndex - 1 + imageUrls.length) % imageUrls.length;
+        showImage(currentImageIndex);
+        startAutoPlay();
+      }
+      
+      function nextImage() {
+        stopAutoPlay();
+        currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+        showImage(currentImageIndex);
+        startAutoPlay();
+      }
+
+      function renderTags(product) {
+        var tags = [];
+        
+        if (product.tags) {
+          try {
+            tags = JSON.parse(product.tags);
+          } catch (e) {
+            tags = product.tags.split(',');
+          }
+        }
+
+        if (!tags || tags.length === 0) {
+          $('#productTags').html('<span class="product-tag">暂无标签</span>');
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < tags.length; i++) {
+          html += '<span class="product-tag">' + tags[i].trim() + '</span>';
+        }
+        $('#productTags').html(html);
+      }
+
+      function renderDetail(product) {
+        console.log('Product detail:', product.detail);
+        
+        if (!product.detail || product.detail.trim() === '') {
+          $('#productDetail').html('<p class="text-muted">暂无详细信息</p>');
+          return;
+        }
+        
+        var detailText = product.detail;
+        detailText = detailText.replace(/\n/g, '<br>');
+        
+        $('#productDetail').html('<div class="product-detail-text">' + detailText + '</div>');
+      }
+
+      function loadRelatedProducts() {
+        var productId = getUrlParameter('id');
+        
+        $.ajax({
+          url: '/api/product/list',
+          type: 'GET',
+          success: function(response) {
+            if (response.code === 200 && response.data) {
+              var products = response.data;
+              var related = products.filter(function(p) { 
+                return p.id != productId; 
+              }).slice(0, 6);
+              
+              renderRelatedProducts(related);
+            }
+          },
+          error: function() {
+            console.log('加载相关产品失败');
+          }
+        });
+      }
+
+      function renderRelatedProducts(products) {
+        if (!products || products.length === 0) {
+          $('#relatedProducts').html('<p class="text-muted text-center">暂无相关产品</p>');
+          return;
+        }
+
+        var html = '';
+        var detailUrl = '';
+        for (var i = 0; i < products.length; i++) {
+          var product = products[i];
+          detailUrl = 'product-detail.html?id=' + product.id;
+          html += '<div class="col-md-4 col-sm-6 col-xs-6 mb-3">' +
+                  '<div class="related-product-card">' +
+                  '<a href="' + detailUrl + '" class="related-link related-product-card-img-wrapper">' +
+                  '<img src="' + (product.imageUrl || 'img/infinite-loop-01.jpg') + '" alt="' + product.name + '">' +
+                  '</a>' +
+                  '<div class="card-body">' +
+                  '<a href="' + detailUrl + '" class="related-link card-title">' + (product.name || '') + '</a>' +
+                  '</div>' +
+                  '</div>' +
+                  '</div>';
+        }
+        $('#relatedProducts').html(html);
+      }
+    </script>
+  </body>
+</html>

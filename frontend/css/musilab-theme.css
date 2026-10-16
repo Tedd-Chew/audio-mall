@@ -1,0 +1,442 @@
+/* ============================================
+   Musilab Audio - Dark Premium Theme
+   Overrides Tooplate light theme with dark premium aesthetic
+   ============================================ */
+
+:root {
+  --primary: #1A1A2E;
+  --primary-light: #16213E;
+  --surface: #0F3460;
+  --surface-card: rgba(22, 33, 62, 0.85);
+  --accent: #D4AF37;
+  --accent-light: #E8C960;
+  --accent-glow: rgba(212, 175, 55, 0.3);
+  --text: #E8E8E8;
+  --text-muted: #A0A0B0;
+  --text-dark: #1A1A2E;
+  --border-subtle: rgba(212, 175, 55, 0.12);
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --shadow-hover: 0 8px 40px rgba(212, 175, 55, 0.15);
+  --radius: 12px;
+}
+
+/* ---- Body & Background ---- */
+body {
+  background-color: var(--primary);
+  color: var(--text);
+}
+
+/* ---- Sections ---- */
+#infinite {
+  background-color: var(--primary);
+}
+
+#features,
+#popular,
+#products,
+#product-detail {
+  background-color: var(--primary);
+}
+
+#about {
+  background-color: var(--surface);
+}
+
+#contact {
+  background-color: #0D1117;
+}
+
+/* ---- Typography ---- */
+.tm-text-primary {
+  color: var(--accent) !important;
+}
+
+.tm-section-title {
+  color: var(--text);
+  font-weight: 300;
+  letter-spacing: -0.5px;
+}
+
+.tm-section-desc {
+  color: var(--text-muted);
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tm-intro-text {
+  color: var(--text-muted);
+}
+
+/* ---- Navbar ---- */
+.tm-navbar {
+  background: rgba(26, 26, 46, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+.tm-navbar.scroll {
+  background: rgba(13, 17, 23, 0.95);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand {
+  color: var(--accent) !important;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 20px var(--accent-glow);
+  transition: text-shadow var(--transition);
+}
+
+.navbar-brand:hover {
+  text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+}
+
+.tm-nav-link {
+  color: var(--text-muted) !important;
+  position: relative;
+  transition: color var(--transition);
+}
+
+.tm-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%;
+  height: 2px;
+  background: var(--accent);
+  transition: transform var(--transition);
+}
+
+.tm-nav-link:hover,
+.tm-nav-link.active,
+.nav-item.active .tm-nav-link {
+  color: var(--accent) !important;
+}
+
+.tm-nav-link:hover::after,
+.nav-item.active .tm-nav-link::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* ---- Hero Section ---- */
+.tm-parallax {
+  position: relative;
+}
+
+.tm-parallax::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 26, 46, 0.3) 0%,
+    rgba(26, 26, 46, 0.6) 60%,
+    rgba(26, 26, 46, 0.95) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tm-hero-text-container {
+  position: relative;
+  z-index: 2;
+}
+
+.tm-hero-title {
+  color: var(--text);
+  font-weight: 300;
+  font-size: 3.5rem;
+  letter-spacing: 2px;
+}
+
+.tm-hero-title span {
+  color: var(--accent);
+}
+
+.tm-hero-subtitle {
+  color: var(--text-muted);
+  font-weight: 300;
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+}
+
+.tm-down-arrow-link {
+  color: var(--accent) !important;
+  transition: transform var(--transition), color var(--transition);
+}
+
+.tm-down-arrow-link:hover {
+  color: var(--accent-light) !important;
+  transform: translateY(4px);
+}
+
+/* ---- Feature Icons (homepage) ---- */
+.tm-icon {
+  color: var(--accent);
+  transition: transform var(--transition), color var(--transition);
+}
+
+.col-lg-4:hover .tm-icon {
+  transform: scale(1.15);
+  color: var(--accent-light);
+}
+
+/* ---- Product Cards (dark override) ---- */
+.product-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-card);
+}
+
+.product-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-5px);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.product-card-img-wrapper {
+  background: rgba(15, 52, 96, 0.4);
+}
+
+.product-card-img-wrapper img {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover .product-card-img-wrapper img {
+  transform: scale(1.05);
+}
+
+.product-card-title {
+  color: var(--text);
+}
+
+.product-card-title:hover {
+  color: var(--accent);
+}
+
+.product-card-category {
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--accent);
+}
+
+.product-card-description {
+  color: var(--text-muted);
+}
+
+.product-card-price {
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.product-link {
+  color: var(--text);
+}
+
+.product-link:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* ---- Category Buttons (dark override) ---- */
+.category-btn {
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--text-muted);
+}
+
+.category-btn.active,
+.category-btn:hover {
+  background: var(--accent);
+  color: var(--primary);
+  border-color: var(--accent);
+}
+
+/* ---- Product Tags (dark override) ---- */
+.product-tag {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--accent);
+}
+
+/* ---- Product Detail Text ---- */
+.product-detail-text {
+  color: var(--text-muted);
+}
+
+#productDetail {
+  background: var(--surface-card) !important;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ---- Gallery (dark override) ---- */
+.gallery-main {
+  background: rgba(15, 52, 96, 0.4);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+}
+
+.gallery-thumb {
+  background: rgba(15, 52, 96, 0.4);
+  border-color: transparent;
+  border-radius: 6px;
+}
+
+.gallery-thumb.active {
+  border-color: var(--accent);
+}
+
+.gallery-nav {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.gallery-nav:hover {
+  background: var(--accent);
+}
+
+/* ---- Related Products (dark override) ---- */
+.related-product-card-img-wrapper {
+  background: rgba(15, 52, 96, 0.4);
+}
+
+.related-product-card .card-title {
+  color: var(--text);
+}
+
+.related-product-card .card-title:hover {
+  color: var(--accent);
+}
+
+/* ---- Contact Section ---- */
+#contact {
+  color: var(--text-muted);
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: background var(--transition);
+}
+
+.contact-item:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.contact-item i {
+  color: var(--accent);
+  transition: transform var(--transition);
+  flex-shrink: 0;
+}
+
+.contact-item:hover i {
+  transform: scale(1.15);
+}
+
+.contact-item span,
+.contact-item p {
+  color: var(--text-muted);
+}
+
+/* ---- Footer ---- */
+.tm-footer {
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+}
+
+.tm-footer a {
+  color: var(--accent);
+}
+
+/* ---- Buttons ---- */
+.tm-btn-primary {
+  display: inline-block;
+  padding: 12px 36px;
+  background: var(--accent);
+  color: var(--primary);
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: all var(--transition);
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+
+.tm-btn-primary:hover {
+  background: var(--accent-light);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+  text-decoration: none;
+}
+
+/* ---- About Section Background Overlay ---- */
+#about .tm-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.85);
+  z-index: 0;
+}
+
+#about .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Breadcrumb (dark) ---- */
+.breadcrumb-nav .breadcrumb-item a {
+  color: var(--accent);
+}
+
+.breadcrumb-nav .breadcrumb-item.active {
+  color: var(--text-muted);
+}
+
+.breadcrumb-nav .breadcrumb-item + .breadcrumb-item::before {
+  color: var(--text-muted);
+}
+
+/* ---- Logo in admin/login ---- */
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+}
+
+/* ---- Responsive Navbar ---- */
+@media (max-width: 768px) {
+  .tm-navbar {
+    background: rgba(13, 17, 23, 0.98);
+  }
+
+  .navbar-collapse {
+    background: rgba(13, 17, 23, 0.98);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .tm-hero-title {
+    font-size: 2.2rem;
+  }
+
+  .tm-hero-subtitle {
+    font-size: 1rem;
+    letter-spacing: 1.5px;
+  }
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>{{META_TITLE}}</title>
+    <meta name="description" content="{{META_DESCRIPTION}}" />
+    <meta name="keywords" content="{{META_KEYWORDS}}" />
+    <link rel="canonical" href="{{META_CANONICAL}}" />
+    {{HREFLANG_LINKS}}
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    {{SOCIAL_META}}
+    {{JSON_LD}}
+    <link rel="stylesheet" href="/fontawesome-5.5/css/all.min.css" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/raleway.css" />
+    <link rel="stylesheet" href="/css/tooplate-infinite-loop.css" />
+    <link rel="stylesheet" href="/css/musilab-custom.css" />
+    <link rel="stylesheet" href="/css/musilab-theme.css" />
+  </head>
+  <body>    
+    <section id="infinite" class="text-white tm-font-big tm-parallax" style="height: 250px;">
+      <nav class="navbar navbar-expand-md tm-navbar" id="tmNav">              
+        <div class="container">   
+          <div class="tm-next">
+              <a href="/cn" class="navbar-brand">Musilab Audio</a>
+          </div>             
+            
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars navbar-toggler-icon"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn">首页</a>
+              </li>
+              <li class="nav-item active">
+                  <a class="nav-link tm-nav-link" href="/cn/products">产品中心</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn#about">关于我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn#contact">联系我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en/products">English</a>
+              </li>                    
+            </ul>
+          </div>        
+        </div>
+      </nav>
+      
+      <div class="text-center tm-hero-text-container">
+        <div class="tm-hero-text-container-inner">
+            <h2 class="tm-hero-title">产品中心</h2>
+            <p class="tm-hero-subtitle">探索我们的全部产品系列</p>
+        </div>        
+      </div>
+    </section>
+
+    <section id="products" class="tm-section-pad-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-3 col-md-4 mb-4">
+            <h3 class="tm-text-primary mb-4">产品分类</h3>
+            <div class="category-list" id="categoryList">
+              {{CATEGORY_LIST}}
+            </div>
+          </div>
+          <div class="col-lg-9 col-md-8">
+            <div class="row" id="productGrid">
+              {{PRODUCT_GRID}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="tm-section-pad-top">
+      <div class="container tm-container-contact">
+        <div class="row">
+            <div class="text-center col-12">
+                <h2 class="tm-section-title mb-6">联系我们</h2>
+            </div>
+            
+            <div class="col-sm-12 col-md-6 offset-md-3">
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-phone-square mr-4"></i>
+                  <div>
+                    <p class="mb-0">电话: +86-769-38996619</p>
+                    <p>传真: +86-769-87869070</p>
+                  </div>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-globe mr-4"></i>
+                  <span class="mb-0">网站: www.musilabaudio.com</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-map-marker-alt mr-4"></i>
+                  <span>地址: 广东省东莞市清溪镇浮岗环卫街5号</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="far fa-2x fa-envelope mr-4"></i>
+                  <div>
+                    <p class="mb-0">邮箱: kenny@musilab.com.cn</p>
+                    <p>annie@musilab.com.cn</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center small tm-footer">
+          <p class="mb-0">
+          Copyright &copy; <span id="copyright-year"></span> Musilab Audio. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </section>
+    
+    <script src="/js/jquery-3.7.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/musilab-common.js"></script>
+  </body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>{{META_TITLE}}</title>
+    <meta name="description" content="{{META_DESCRIPTION}}" />
+    <meta name="keywords" content="{{META_KEYWORDS}}" />
+    <link rel="canonical" href="{{META_CANONICAL}}" />
+    {{HREFLANG_LINKS}}
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    {{SOCIAL_META}}
+    {{JSON_LD}}
+    <link rel="stylesheet" href="/fontawesome-5.5/css/all.min.css" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/raleway.css" />
+    <link rel="stylesheet" href="/css/tooplate-infinite-loop.css" />
+    <link rel="stylesheet" href="/css/musilab-custom.css" />
+    <link rel="stylesheet" href="/css/musilab-theme.css" />
+  </head>
+  <body>    
+    <section id="infinite" class="text-white tm-font-big tm-parallax" style="height: 250px;">
+      <nav class="navbar navbar-expand-md tm-navbar" id="tmNav">              
+        <div class="container">   
+          <div class="tm-next">
+              <a href="/cn" class="navbar-brand">Musilab Audio</a>
+          </div>             
+            
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars navbar-toggler-icon"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn">首页</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn/products">产品中心</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn#about">关于我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/cn#contact">联系我们</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link tm-nav-link" href="/en/products/detail?id={{PRODUCT_ID}}">English</a>
+              </li>                    
+            </ul>
+          </div>        
+        </div>
+      </nav>
+    </section>
+
+    <section id="product-detail" class="tm-section-pad-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-md-12">
+            <div class="product-gallery" id="productGallery">
+              <div class="gallery-main" id="galleryMain">
+                <img src="{{MAIN_IMAGE}}" alt="产品图片">
+                <button class="gallery-nav gallery-nav-prev" onclick="prevImage()">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="gallery-nav gallery-nav-next" onclick="nextImage()">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="gallery-thumbs" id="galleryThumbs">
+                {{GALLERY_THUMBS}}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-12">
+            <h1 id="productName" class="tm-text-primary">{{PRODUCT_NAME}}</h1>
+            <div id="productTags" class="mt-4">
+              {{PRODUCT_TAGS}}
+            </div>
+            <div class="mt-4">
+              <span class="text-muted">价格</span>
+              <h2 id="productPrice" class="text-primary">{{PRODUCT_PRICE}}</h2>
+            </div>
+            <p id="productDescription" class="mt-4 text-muted">
+              {{PRODUCT_DESCRIPTION}}
+            </p>
+            <div class="mt-6">
+              <a href="/cn/products" class="tm-btn-primary">返回产品列表</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-8">
+          <div class="col-lg-12">
+            <h2 class="tm-text-primary mb-4">产品详情</h2>
+            <div id="productDetail" class="bg-light p-4 rounded-lg">
+              <div class="product-detail-text">{{PRODUCT_DETAIL}}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-8">
+          <div class="col-lg-12">
+            <h2 class="tm-text-primary mb-4">相关产品</h2>
+            <div class="row" id="relatedProducts">
+              {{RELATED_PRODUCTS}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="tm-section-pad-top">
+      <div class="container tm-container-contact">
+        <div class="row">
+            <div class="text-center col-12">
+                <h2 class="tm-section-title mb-6">联系我们</h2>
+            </div>
+            
+            <div class="col-sm-12 col-md-6 offset-md-3">
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-phone-square mr-4"></i>
+                  <div>
+                    <p class="mb-0">电话: +86-769-38996619</p>
+                    <p>传真: +86-769-87869070</p>
+                  </div>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-globe mr-4"></i>
+                  <span class="mb-0">网站: www.musilabaudio.com</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="fas fa-2x fa-map-marker-alt mr-4"></i>
+                  <span>地址: 广东省东莞市清溪镇浮岗环卫街5号</span>
+                </div>
+                <div class="contact-item text-center mb-4">
+                  <i class="far fa-2x fa-envelope mr-4"></i>
+                  <div>
+                    <p class="mb-0">邮箱: kenny@musilab.com.cn</p>
+                    <p>annie@musilab.com.cn</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center small tm-footer">
+          <p class="mb-0">
+          Copyright &copy; <span id="copyright-year"></span> Musilab Audio. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </section>
+    
+    <script src="/js/jquery-3.7.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/musilab-common.js"></script>
+    <script>
+      var currentImageIndex = 0;
+      var imageUrls = [];
+      var autoPlayTimer = null;
+
+      $(function(){
+        imageUrls = [];
+        $('.gallery-thumb').each(function() {
+          var $img = $(this).find('img');
+          var src = $(this).data('src') || $img.attr('data-src') || $img.attr('src');
+          if (src) imageUrls.push(src);
+        });
+        if (imageUrls.length <= 1) {
+          $('.gallery-nav').hide();
+        } else {
+          $('.gallery-nav').show();
+          startAutoPlay();
+        }
+      });
+
+      function onThumbClick(index) {
+        stopAutoPlay();
+        showImage(index);
+        if (imageUrls.length > 1) startAutoPlay();
+      }
+
+      function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayTimer = setInterval(function() { nextImage(); }, 4000);
+      }
+
+      function stopAutoPlay() {
+        if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+      }
+
+      function showImage(index) {
+        if (!imageUrls.length) return;
+        if (index >= 0 && index < imageUrls.length) {
+          currentImageIndex = index;
+          $('#galleryMain img').attr('src', imageUrls[index]);
+          $('.gallery-thumb').removeClass('active');
+          $('.gallery-thumb').eq(index).addClass('active');
+        }
+      }
+
+      function prevImage() {
+        if (!imageUrls.length) return;
+        stopAutoPlay();
+        currentImageIndex = (currentImageIndex - 1 + imageUrls.length) % imageUrls.length;
+        showImage(currentImageIndex);
+        if (imageUrls.length > 1) startAutoPlay();
+      }
+
+      function nextImage() {
+        if (!imageUrls.length) return;
+        stopAutoPlay();
+        currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+        showImage(currentImageIndex);
+        if (imageUrls.length > 1) startAutoPlay();
+      }
+    </script>
+  </body>
+</html>

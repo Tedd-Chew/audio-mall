@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>管理后台 - Musilab Audio</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="fontawesome-5.5/css/all.min.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/raleway.css" />
+    <link rel="stylesheet" href="css/tooplate-infinite-loop.css" />
+    <link rel="stylesheet" href="css/musilab-theme.css" />
+    <link rel="stylesheet" href="css/musilab-admin.css" />
+    <style>
+      .admin-container {
+        padding: 100px 20px 20px;
+        position: relative;
+        z-index: 1;
+      }
+      .nav-tabs {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 10;
+      }
+      .nav-tabs .nav-link {
+        padding: 10px 20px;
+        font-size: 16px;
+        position: relative;
+        z-index: 10;
+      }
+      .table {
+        font-size: 14px;
+      }
+      .table th, .table td {
+        padding: 8px 12px;
+        vertical-align: middle;
+      }
+      .btn {
+        margin-right: 5px;
+        padding: 4px 12px;
+        font-size: 13px;
+      }
+      .modal-dialog {
+        max-width: 700px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .form-group input, .form-group textarea, .form-group select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+      .category-products {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+      }
+      .category-product-item {
+        display: inline-block;
+        margin: 5px;
+        padding: 5px 10px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .upload-area {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #fafafa;
+        margin-bottom: 10px;
+      }
+      .upload-area:hover {
+        border-color: #369;
+        background: #f0f7ff;
+      }
+      .upload-area.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        background: #eee;
+      }
+      .upload-btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background: #369;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .upload-btn:hover {
+        background: #257;
+      }
+      .upload-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .upload-preview .preview-item {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .upload-preview .preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .upload-preview .preview-item .remove-btn {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 20px;
+      }
+      .image-url-display {
+        font-size: 12px;
+        color: #666;
+        word-break: break-all;
+        margin-top: 5px;
+        padding: 5px;
+        background: #f5f5f5;
+        border-radius: 4px;
+      }
+      .upload-status {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+      .upload-status.success {
+        color: green;
+      }
+      .upload-status.error {
+        color: red;
+      }
+      .home-upload-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .home-image-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 15px;
+      }
+      .home-image-item {
+        position: relative;
+        width: 200px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      }
+      .home-image-item img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+      }
+      .home-image-item .delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        background: rgba(220,53,69,0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md tm-navbar">              
+      <div class="container">   
+        <div class="tm-next">
+            <a href="index.html" class="navbar-brand">Musilab Audio</a>
+        </div>             
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">首页</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/en/products">产品中心</a>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link btn btn-link" onclick="logout()">退出登录</button>
+            </li>                    
+          </ul>
+        </div>        
+      </div>
+    </nav>
+
+    <div class="admin-container container">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link" onclick="showTab('home')">主页图管理</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" onclick="showTab('product')">产品管理</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" onclick="showTab('category')">分类管理</a>
+        </li>
+      </ul>
+
+      <div id="homeTab" class="tab-content" style="display: none;">
+        <div class="home-upload-card">
+          <h5>上传主页轮播图</h5>
+          <div class="upload-area" id="homeUploadArea" onclick="document.getElementById('homeFileInput').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #999;"></i>
+            <p style="margin: 10px 0;">点击或拖拽图片到此处上传</p>
+            <p class="text-muted" style="font-size: 12px;">支持 JPG、PNG、WebP 格式，最大 10MB</p>
+          </div>
+          <input type="file" id="homeFileInput" style="display: none;" accept="image/*" onchange="handleHomeUpload(this.files)">
+          <div id="homeUploadStatus" class="upload-status"></div>
+        </div>
+        <div class="home-upload-card">
+          <h5>已上传的主页图</h5>
+          <div class="home-image-list" id="homeImageList">
+            <p class="text-muted">暂无上传的图片</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="productTab" class="tab-content">
+        <button class="btn btn-primary mb-3" onclick="showProductModal()">添加产品</button>
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th width="5%">ID</th>
+              <th width="20%">名称</th>
+              <th width="15%">图片</th>
+              <th width="10%">价格</th>
+              <th width="15%">分类</th>
+              <th width="20%">描述</th>
+              <th width="15%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div id="categoryTab" class="tab-content" style="display: none;">
+        <button class="btn btn-primary mb-3" onclick="showCategoryModal()">添加分类</button>
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th width="10%">ID</th>
+              <th width="30%">名称</th>
+              <th width="40%">关联产品</th>
+              <th width="20%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="categoryTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal fade" id="productModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="productModalTitle">添加产品</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="productForm">
+              <input type="hidden" id="productId" />
+              <div class="form-group">
+                <label>名称 <span style="color: red;">*</span></label>
+                <input type="text" id="productName" placeholder="产品名称（必填）" />
+              </div>
+              <div class="form-group">
+                <label>价格</label>
+                <input type="number" id="productPrice" step="0.01" placeholder="例如：299.99（可选）" />
+              </div>
+              <div class="form-group">
+                <label>分类 <span style="color: red;">*</span></label>
+                <select id="productCategoryId">
+                  <option value="">请先选择分类（必填）</option>
+                </select>
+              </div>
+              <div class="form-group" id="basicInfoActions">
+                <button type="button" class="btn btn-success" id="saveBasicBtn" onclick="saveBasicInfo()">保存基础信息</button>
+                <span id="basicInfoStatus" class="text-success ml-3" style="display: none;">基础信息已保存</span>
+              </div>
+              <div class="form-group">
+                <label>描述</label>
+                <textarea id="productDescription" placeholder="产品简介（可选）"></textarea>
+              </div>
+              <div class="form-group">
+                <label>产品封面图</label>
+                <div id="coverUploadArea" class="upload-area" onclick="document.getElementById('coverFileInput').click()">
+                  <i class="fas fa-image" style="font-size: 30px; color: #999;"></i>
+                  <p style="margin: 5px 0; font-size: 13px;">点击上传封面图</p>
+                </div>
+                <input type="file" id="coverFileInput" style="display: none;" accept="image/*" onchange="handleCoverUpload(this.files)">
+                <div id="coverUploadStatus" class="upload-status"></div>
+                <input type="hidden" id="productImageUrl" />
+                <div id="coverPreview" class="upload-preview"></div>
+              </div>
+              <div class="form-group">
+                <label>产品详情图</label>
+                <div id="detailUploadArea" class="upload-area" onclick="document.getElementById('detailFileInput').click()">
+                  <i class="fas fa-images" style="font-size: 30px; color: #999;"></i>
+                  <p style="margin: 5px 0; font-size: 13px;">点击上传详情图</p>
+                </div>
+                <input type="file" id="detailFileInput" style="display: none;" accept="image/*" multiple onchange="handleDetailUpload(this.files)">
+                <div id="detailUploadStatus" class="upload-status"></div>
+                <input type="hidden" id="productImageList" />
+                <div id="detailPreview" class="upload-preview"></div>
+              </div>
+              <div class="form-group">
+                <label>产品标签 <small class="text-muted">(多个标签用英文逗号分隔)</small></label>
+                <input type="text" id="productTags" placeholder="例如：蓝牙,Hi-Fi,防水（可选）" />
+              </div>
+              <div class="form-group">
+                <label>产品详情 <small class="text-muted">(纯文本，换行即可分段)</small></label>
+                <textarea id="productDetail" style="min-height: 120px;" placeholder="输入产品详细介绍，直接换行即可分段显示。（可选）"></textarea>
+              </div>
+              <div class="form-group text-muted text-sm">
+                <p><strong>说明：</strong><span id="uploadHint">请先保存产品后再上传图片。</span></p>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary" onclick="saveProduct()">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="categoryModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="categoryModalTitle">添加分类</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="categoryForm">
+              <input type="hidden" id="categoryId" />
+              <div class="form-group">
+                <label>名称 <span style="color: red;">*</span></label>
+                <input type="text" id="categoryName" placeholder="分类名称（必填）" required />
+              </div>
+            </form>
+            <div class="category-products" id="categoryProductsList">
+              <strong>关联产品：</strong>
+              <div id="categoryProducts"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary" onclick="saveCategory()">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/musilab-admin.js"></script>
+    <div id="toast-container"></div>
+    <script>
+      var token = getToken();
+      var allCategories = [];
+      var allProducts = [];
+      var uploadedCoverUrl = '';
+      var uploadedDetailUrls = [];
+      var isEditMode = false;
+      var basicInfoSaved = false;  // 基础信息（名称、类别）是否已保存
+
+      $(function() {
+        if (!checkAuth()) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        loadProducts();
+        loadCategories();
+        
+        setupDragDrop();
+      });
+
+      function setupDragDrop() {
+        var homeArea = document.getElementById('homeUploadArea');
+        
+        homeArea.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          this.classList.add('dragover');
+        });
+        
+        homeArea.addEventListener('dragleave', function(e) {
+          e.preventDefault();
+          this.classList.remove('dragover');
+        });
+        
+        homeArea.addEventListener('drop', function(e) {
+          e.preventDefault();
+          this.classList.remove('dragover');
+          handleHomeUpload(e.dataTransfer.files);
+        });
+      }
+
+      function showTab(tab) {
+        $('.nav-link').removeClass('active');
+        $('[onclick="showTab(\'' + tab + '\')"]').addClass('active');
+        $('#homeTab, #productTab, #categoryTab').hide();
+        $('#' + tab + 'Tab').show();
+        
+        if (tab === 'home') {
+          loadHomeImages();
+        }
+      }
+
+      function loadProducts() {
+        $.ajax({
+          url: '/api/product/admin/list',
+          type: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: function(response) {
+            if (response.code === 200) {
+              allProducts = response.data;
+              renderProductTable();
+            }
+          },
+          error: function() {
+            showToast('产品列表加载失败，请刷新页面', 'error');
+          }
+        });
+      }
+
+      function loadCategories() {
+        $.ajax({
+          url: '/api/category/list',
+          type: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: function(response) {
+            if (response.code === 200) {
+              allCategories = response.data;
+              renderCategoryTable();
+              updateCategorySelect();
+            }
+          },
+          error: function() {
+            showToast('分类列表加载失败，请刷新页面', 'error');
+          }
+        });
+      }
+
+      function renderProductTable() {
+        var html = '';
+        for (var i = 0; i < allProducts.length; i++) {
+          var p = allProducts[i];
+          var isHidden = p.isDelete === 1;
+          var imageUrl = p.imageUrl ? p.imageUrl : 'img/infinite-loop-01.jpg';
+          var rowStyle = isHidden ? ' style="opacity: 0.5"' : '';
+          var toggleLabel = isHidden ? '已隐藏' : '显示中';
+          var toggleClass = isHidden ? 'btn-secondary' : 'btn-success';
+          html += '<tr' + rowStyle + '>' +
+                  '<td>' + p.id + '</td>' +
+                  '<td>' + (p.name || '') + '</td>' +
+                  '<td><img src="' + imageUrl + '" width="60" onerror="this.src=\'img/infinite-loop-01.jpg\'" /></td>' +
+                  '<td>¥' + (p.price || 0) + '</td>' +
+                  '<td>' + (p.categoryName || '未分类') + '</td>' +
+                  '<td>' + ((p.description || '').substring(0, 30)) + '...</td>' +
+                  '<td>' +
+                  '<button class="btn btn-sm ' + toggleClass + '" onclick="toggleProductVisibility(' + p.id + ')" style="margin-right:4px">' + toggleLabel + '</button>' +
+                  '<button class="btn btn-sm btn-warning" onclick="editProduct(' + p.id + ')">编辑</button>' +
+                  '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + p.id + ')">删除</button>' +
+                  '</td>' +
+                  '</tr>';
+        }
+        $('#productTableBody').html(html);
+      }
+
+      function renderCategoryTable() {
+        var html = '';
+        for (var i = 0; i < allCategories.length; i++) {
+          var c = allCategories[i];
+          var products = allProducts.filter(function(p) { return p.categoryId === c.id; });
+          var productNames = products.map(function(p) { return p.name; }).join(', ') || '无';
+          html += '<tr>' +
+                  '<td>' + c.id + '</td>' +
+                  '<td>' + c.name + '</td>' +
+                  '<td>' + productNames + '</td>' +
+                  '<td>' +
+                  '<button class="btn btn-sm btn-warning" onclick="editCategory(' + c.id + ')">编辑</button>' +
+                  '<button class="btn btn-sm btn-danger" onclick="deleteCategory(' + c.id + ')">删除</button>' +
+                  '</td>' +
+                  '</tr>';
+        }
+        $('#categoryTableBody').html(html);
+      }
+
+      function updateCategorySelect() {
+        var html = '<option value="">请先选择分类</option>';
+        for (var i = 0; i < allCategories.length; i++) {
+          html += '<option value="' + allCategories[i].id + '">' + allCategories[i].name + '</option>';
+        }
+        $('#productCategoryId').html(html);
+      }
+
+      function showProductModal(id) {
+        isEditMode = !!id;
+        basicInfoSaved = !!id;  // 编辑模式下基础信息已保存
+        uploadedCoverUrl = '';
+        uploadedDetailUrls = [];
+        
+        $('#productModalTitle').text(id ? '编辑产品' : '添加产品');
+        $('#productId').val(id || '');
+        $('#productName').val('');
+        $('#productPrice').val('');
+        $('#productCategoryId').val('');
+        $('#productDescription').val('');
+        $('#productImageUrl').val('');
+        $('#productImageList').val('');
+        $('#productTags').val('');
+        $('#productDetail').val('');
+        $('#coverPreview').html('');
+        $('#detailPreview').html('');
+        $('#coverUploadStatus').html('');
+        $('#detailUploadStatus').html('');
+
+        updateUploadAreaState();
+
+        if (id) {
+          var product = allProducts.find(function(p) { return p.id == id; });
+          if (product) {
+            $('#productName').val(product.name);
+            $('#productPrice').val(product.price);
+            $('#productCategoryId').val(product.categoryId || '');
+            $('#productDescription').val(product.description);
+            $('#productImageUrl').val(product.imageUrl || '');
+            $('#productImageList').val(product.imageList || '');
+            $('#productTags').val(product.tags);
+            $('#productDetail').val(product.detail);
+            
+            uploadedCoverUrl = product.imageUrl || '';
+            if (uploadedCoverUrl) {
+              $('#coverPreview').html('<div class="preview-item"><img src="' + uploadedCoverUrl + '" onerror="this.src=\'img/infinite-loop-01.jpg\'" /></div>');
+            }
+            
+            if (product.imageList) {
+              var urls = product.imageList.split(',');
+              uploadedDetailUrls = urls;
+              var html = '';
+              for (var i = 0; i < urls.length; i++) {
+                html += '<div class="preview-item"><img src="' + urls[i] + '" onerror="this.src=\'img/infinite-loop-01.jpg\'" /></div>';
+              }
+              $('#detailPreview').html(html);
+            }
+          }
+        }
+        $('#productModal').modal('show');
+      }
+
+      function updateUploadAreaState() {
+        if (basicInfoSaved) {
+          $('#uploadHint').text('基础信息已保存，可以上传图片。');
+          $('#coverUploadArea').removeClass('disabled');
+          $('#detailUploadArea').removeClass('disabled');
+          $('#saveBasicBtn').hide();
+          $('#basicInfoStatus').show();
+          // 基础信息保存后禁止修改名称和类别
+          $('#productName').attr('readonly', 'readonly');
+          $('#productCategoryId').attr('disabled', 'disabled');
+        } else {
+          $('#uploadHint').text('请先保存基础信息（名称、类别）后再上传图片。');
+          $('#coverUploadArea').addClass('disabled');
+          $('#detailUploadArea').addClass('disabled');
+          $('#saveBasicBtn').show();
+          $('#basicInfoStatus').hide();
+          $('#productName').removeAttr('readonly');
+          $('#productCategoryId').removeAttr('disabled');
+        }
+      }
+
+      function saveBasicInfo() {
+        var name = $('#productName').val().trim();
+        if (!name) {
+          showToast('请输入产品名称', 'info');
+          return;
+        }
+
+        var categoryId = $('#productCategoryId').val();
+        if (!categoryId) {
+          showToast('请选择分类', 'info');
+          return;
+        }
+
+        var data = {
+          name: name,
+          price: 0.0,
+          categoryId: parseInt(categoryId),
+          description: null,
+          imageUrl: null,
+          imageList: null,
+          tags: null,
+          detail: null
+        };
+
+        $.ajax({
+          url: '/api/product/add',
+          type: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          contentType: 'application/json',
+          data: JSON.stringify(data),
+          success: function(response) {
+            if (response.code === 200 && response.data && response.data.id) {
+              $('#productId').val(response.data.id);
+              basicInfoSaved = true;
+              isEditMode = true;
+              $('#productModalTitle').text('编辑产品');
+              updateUploadAreaState();
+              showToast('基础信息已保存，现在可以上传图片了！', 'success');
+            } else {
+              showToast(response.msg || '保存失败', 'error');
+            }
+          },
+          error: function(xhr) {
+            showToast(xhr.responseJSON?.msg || xhr.responseText || '保存失败', 'error');
+          }
+        });
+      }
+
+      function handleHomeUpload(files) {
+        if (!files || files.length === 0) return;
+        
+        var file = files[0];
+        if (!file.type.startsWith('image/')) {
+          $('#homeUploadStatus').html('请选择图片文件').addClass('error');
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          $('#homeUploadStatus').html('图片大小不能超过10MB').addClass('error');
+          return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        $('#homeUploadStatus').html('上传中...').removeClass('error success');
+
+        $.ajax({
+          url: '/api/upload/home',
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            if (response.code === 200) {
+              $('#homeUploadStatus').html('上传成功！URL: ' + response.data).addClass('success');
+              loadHomeImages();
+            } else {
+              $('#homeUploadStatus').html(response.msg || '上传失败').addClass('error');
+            }
+          },
+          error: function(xhr) {
+            $('#homeUploadStatus').html(xhr.responseJSON?.msg || '上传失败').addClass('error');
+          }
+        });
+      }
+
+      function loadHomeImages() {
+        var html = '<p class="text-muted">暂无上传的图片</p>';
+        $('#homeImageList').html(html);
+      }
+
+      function handleCoverUpload(files) {
+        if (!basicInfoSaved) {
+          showToast('请先保存基础信息后再上传图片', 'info');
+          return;
+        }
+
+        if (!files || files.length === 0) return;
+        
+        var file = files[0];
+        var categoryId = $('#productCategoryId').val();
+        var productId = $('#productId').val();
+
+        if (!categoryId) {
+          showToast('请先选择分类', 'info');
+          return;
+        }
+
+        if (!productId) {
+          showToast('请先保存产品', 'info');
+          return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('categoryId', categoryId);
+        formData.append('productId', productId);
+
+        $('#coverUploadStatus').html('上传中...').removeClass('error success');
+
+        $.ajax({
+          url: '/api/upload/product/cover',
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            if (response.code === 200) {
+              uploadedCoverUrl = response.data;
+              $('#productImageUrl').val(uploadedCoverUrl);
+              $('#coverUploadStatus').html('上传成功！').addClass('success');
+              $('#coverPreview').html('<div class="preview-item"><img src="' + uploadedCoverUrl + '" onerror="this.src=\'img/infinite-loop-01.jpg\'" /></div>');
+            } else {
+              $('#coverUploadStatus').html(response.msg || '上传失败').addClass('error');
+            }
+          },
+          error: function(xhr) {
+            $('#coverUploadStatus').html(xhr.responseJSON?.msg || '上传失败').addClass('error');
+          }
+        });
+      }
+
+      function handleDetailUpload(files) {
+        if (!basicInfoSaved) {
+          showToast('请先保存基础信息后再上传图片', 'info');
+          return;
+        }
+
+        if (!files || files.length === 0) return;
+        
+        var categoryId = $('#productCategoryId').val();
+        var productId = $('#productId').val();
+
+        if (!categoryId) {
+          showToast('请先选择分类', 'info');
+          return;
+        }
+
+        if (!productId) {
+          showToast('请先保存产品', 'info');
+          return;
+        }
+
+        var formData = new FormData();
+        formData.append('categoryId', categoryId);
+        formData.append('productId', productId);
+        
+        for (var i = 0; i < files.length; i++) {
+          formData.append('file', files[i]);
+        }
+
+        $('#detailUploadStatus').html('上传中...').removeClass('error success');
+
+        $.ajax({
+          url: '/api/upload/product/images',
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            if (response.code === 200) {
+              var newUrls = response.data;
+              for (var i = 0; i < newUrls.length; i++) {
+                uploadedDetailUrls.push(newUrls[i]);
+              }
+              $('#productImageList').val(uploadedDetailUrls.join(','));
+              $('#detailUploadStatus').html('上传成功！共 ' + newUrls.length + ' 张图片').addClass('success');
+              
+              var html = '';
+              for (var i = 0; i < uploadedDetailUrls.length; i++) {
+                html += '<div class="preview-item"><img src="' + uploadedDetailUrls[i] + '" onerror="this.src=\'img/infinite-loop-01.jpg\'" /></div>';
+              }
+              $('#detailPreview').html(html);
+            } else {
+              $('#detailUploadStatus').html(response.msg || '上传失败').addClass('error');
+            }
+          },
+          error: function(xhr) {
+            $('#detailUploadStatus').html(xhr.responseJSON?.msg || '上传失败').addClass('error');
+          }
+        });
+      }
+
+      function saveProduct() {
+        var productId = $('#productId').val();
+        
+        // 新增产品必须先保存基础信息
+        if (!productId) {
+          showToast('请先点击"保存基础信息"按钮保存产品名称和类别', 'info');
+          return;
+        }
+
+        // 编辑模式下，只更新非基础信息字段（价格、描述、图片、标签、详情）
+        // 名称和类别一旦保存不可修改
+        var data = {
+          id: productId,
+          price: $('#productPrice').val() ? parseFloat($('#productPrice').val()) : 0.0,
+          description: $('#productDescription').val() || null,
+          imageUrl: $('#productImageUrl').val() || null,
+          imageList: $('#productImageList').val() || null,
+          tags: $('#productTags').val() || null,
+          detail: $('#productDetail').val() || null
+        };
+
+        $.ajax({
+          url: '/api/product/update',
+          type: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token },
+          contentType: 'application/json',
+          data: JSON.stringify(data),
+          success: function(response) {
+            if (response.code === 200) {
+              loadProducts();
+              $('#productModal').modal('hide');
+              showToast('产品更新成功！', 'success');
+            } else {
+              showToast(response.msg || '保存失败', 'error');
+            }
+          },
+          error: function(xhr) {
+            showToast(xhr.responseJSON?.msg || xhr.responseText || '保存失败', 'error');
+          }
+        });
+      }
+
+      function editProduct(id) {
+        showProductModal(id);
+      }
+
+      function deleteProduct(id) {
+        if (!confirm('确定删除该产品？')) return;
+
+        $.ajax({
+          url: '/api/product/' + id,
+          type: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: function(response) {
+            if (response.code === 200) {
+              loadProducts();
+            } else {
+              showToast(response.msg || '删除失败', 'error');
+            }
+          },
+          error: function(xhr) {
+            showToast(xhr.responseJSON?.msg || '删除失败', 'error');
+          }
+        });
+      }
+
+      function toggleProductVisibility(id) {
+        $.ajax({
+          url: '/api/product/toggle/' + id,
+          type: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: function(response) {
+            if (response.code === 200) {
+              loadProducts();
+            } else {
+              showToast(response.msg || '操作失败', 'error');
+            }
+          },
+          error: function(xhr) {
+            showToast(xhr.responseJSON?.msg || '操作失败', 'error');
+          }
+        });
+      }
+
+      function showCategoryModal(id) {
+        $('#categoryModalTitle').text(id ? '编辑分类' : '添加分类');
+        $('#categoryId').val(id || '');
+        $('#categoryName').val('');
+        $('#categoryProducts').html('');
+
+        if (id) {
+          var category = allCategories.find(function(c) { return c.id == id; });
+          if (category) {
+            $('#categoryName').val(category.name);
+            var products = allProducts.filter(function(p) { return p.categoryId === category.id; });
+            var html = '';
+            for (var i = 0; i < products.length; i++) {
+              html += '<span class="category-product-item">' + products[i].name + '</span>';
+            }
+            $('#categoryProducts').html(html || '无');
+          }
+        }
+        $('#categoryModal').modal('show');
+      }
+
+      function saveCategory() {
+        var name = $('#categoryName').val().trim();
+        if (!name) {
+          showToast('请输入分类名称', 'info');
+          return;
+        }
+
+        var data = {
+          id: $('#categoryId').val() || null,
+          name: name
+        };
+
+        var url = data.id ? '/api/category/update' : '/api/category/add';
+        var method = 'POST';
+
+        $.ajax({
+          url: url,
+          type: method,
+          headers: { 'Authorization': 'Bearer ' + token },
+          contentType: 'application/json',
+          data: JSON.stringify(data),
+          success: function(response) {
+            if (response.code === 200) {
+              $('#categoryModal').modal('hide');
+              loadCategories();
+              loadProducts();
+            } else {
+              showToast(response.msg || response.message || '保存失败', 'error');
+            }
+          },
+          error: function(xhr) {
+            showToast(xhr.responseJSON?.msg || xhr.responseJSON?.message || '保存失败', 'error');
+          }
+        });
+      }
+
+      function editCategory(id) {
+        showCategoryModal(id);
+      }
+
+      function deleteCategory(id) {
+        if (!confirm('确定删除该分类？')) return;
+
+        $.ajax({
+          url: '/api/category/' + id,
+          type: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: function(response) {
+            if (response.code === 200) {
+              loadCategories();
+              loadProducts();
+            } else {
+              showToast(response.msg || response.message || '删除失败', 'error');
+            }
+          },
+          error: function(xhr) {
+            showToast(xhr.responseJSON?.msg || xhr.responseJSON?.message || '删除失败', 'error');
+          }
+        });
+      }
+
+      function logout() {
+        $.ajax({
+          url: '/api/user/logout',
+          type: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          success: function() {
+            showToast('请求失败，请重试', 'error');
+          },
+          error: function() {
+            showToast('请求失败，请重试', 'error');
+          }
+        });
+      }
+
+    </script>
+  </body>
+</html>
