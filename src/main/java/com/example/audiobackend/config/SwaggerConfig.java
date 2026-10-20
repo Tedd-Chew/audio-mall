@@ -1,69 +1,36 @@
-package com.example.audiobackend.config; 
+package com.example.audiobackend.config;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.oas.annotations.EnableOpenApi;
-import springfox.documentation.service.*;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spi.service.contexts.SecurityContext;
-import springfox.documentation.spring.web.plugins.Docket;
 
-import java.util.Collections;
-import java.util.List;
-
-@Configuration 
-@EnableOpenApi 
+/**
+ * 接口文档配置（springdoc-openapi）
+ * 启动后访问 http://localhost:8080/swagger-ui.html
+ */
+@Configuration
 public class SwaggerConfig {
 
+    private static final String SECURITY_SCHEME_NAME = "Bearer Token";
+
     @Bean
-    public Docket createRestApi() {
-        return new Docket(DocumentationType.OAS_30) 
-                .apiInfo(apiInfo()) 
-                // 配置JWT认证规则（让Authorize按钮显示）
-                .securitySchemes(Collections.singletonList(apiKey()))
-                // 配置安全上下文（替换过时方法）
-                .securityContexts(Collections.singletonList(securityContext()))
-                
-                .select() 
-                .apis(RequestHandlerSelectors.basePackage("com.example.audiobackend.controller"))
-                .paths(PathSelectors.any()) 
-                .build();
-    }
-
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title("音频后端系统接口文档") 
-                .description("基于 Spring Boot + JWT 的后端接口文档，包含登录、用户管理等接口") 
-                .version("1.0.0") 
-                .build();
-    }
-
-    // 定义JWT的请求头规则
-    private ApiKey apiKey() {
-        return new ApiKey("JWT Token", "Authorization", "header");
-    }
-
-    // 配置安全上下文（核心：替换过时的forPaths方法）
-    private SecurityContext securityContext() {
-        return SecurityContext.builder()
-                // 关联认证规则
-                .securityReferences(defaultAuth())
-                // ========== 重点：替换过时方法 ==========
-                .operationSelector(operationContext -> 
-                        // 匹配所有接口（和原来的forPaths(PathSelectors.any())效果一致）
-                        PathSelectors.any().test(operationContext.requestMappingPattern())
-                )
-                .build();
-    }
-
-    // 认证范围（全局生效）
-    private List<SecurityReference> defaultAuth() {
-        AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
-        AuthorizationScope[] scopes = new AuthorizationScope[1];
-        scopes[0] = authorizationScope;
-        return Collections.singletonList(new SecurityReference("JWT Token", scopes));
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("音响商城 接口文档")
+                        .description("音响品牌官方商城 —— 商品、订单、支付、秒杀")
+                        .version("1.0.0"))
+                // 页面上多一个 Authorize 按钮，填了 token 之后所有接口自动带上
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
+                .components(new Components().addSecuritySchemes(SECURITY_SCHEME_NAME,
+                        new SecurityScheme()
+                                .name(SECURITY_SCHEME_NAME)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")));
     }
 }

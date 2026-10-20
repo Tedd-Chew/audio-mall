@@ -1,6 +1,8 @@
 package com.example.audiobackend.constant;
 
+/**
+ * 消息队列常量。
+ * 用到时再加（订单超时关闭、秒杀异步下单）。
+ */
 public interface MqConstant {
-    String AI_QUESTION_QUEUE = "ai_question_queue"; // 队列名称
-    String LLM_TEST_QUEUE = "llm_test_queue";
 }

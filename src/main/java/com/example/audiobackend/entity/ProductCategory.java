@@ -1,23 +1,28 @@
 package com.example.audiobackend.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 商品分类。纯 POJO，不带 ORM 注解。
+ * 注意：数据库表名是 category，不是 product_category。
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("product_category")
 public class ProductCategory {
-    @TableId(type = IdType.AUTO)  // 关键！代表数据库自增
+
     private Long id;
+
     private String name;
-    private Integer isDelete;
+
+    /** 排序，小的在前 */
+    private Integer sort;
+
     private LocalDateTime createTime;
+
     private LocalDateTime updateTime;
 }

@@ -1,23 +1,25 @@
 package com.example.audiobackend.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import lombok.Data;
 
+/**
+ * 后台管理员。纯 POJO，不带 ORM 注解。
+ * 跟买家账号（User）是两码事，分表存放。
+ */
 @Data
-@TableName("sys_user") // 对应数据库表名
 public class SysUser {
-    
-    @TableId(type = IdType.AUTO)
+
+    /** 序列化成字符串：Long 超过 2^53 时前端 JS 会丢精度 */
     @JsonSerialize(using = ToStringSerializer.class)
-    private Long id; // 用户ID，主键，自增
-    
-    private String username; // 用户名
-    
-    private String password; // 密码（实际开发中应加密存储）
-    
-    private String role; // 角色（如 admin/user）
+    private Long id;
+
+    private String username;
+
+    /** BCrypt 加密后的密码 */
+    private String password;
+
+    /** 角色：admin */
+    private String role;
 }

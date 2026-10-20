@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace 必须跟 Mapper 接口的全限定名一致，方法名和 id 对应 -->
+<mapper namespace="com.example.audiobackend.mapper.ProductMapper">
+
+    <!-- 列清单：不写 SELECT *，加字段时也不会把 blob 之类的一起拉出来 -->
+    <sql id="columns">
+        id, name, category_id, price, stock, sales, view_count,
+        cover_img, description, status, create_time, update_time
+    </sql>
+
+    <!-- 查询条件，selectPage 和 countByCondition 共用一份，改条件只改这里 -->
+    <sql id="conditions">
+        <where>
+            <if test="categoryId != null">AND category_id = #{categoryId}</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </sql>
+
+    <select id="selectById" resultType="Product">
+        SELECT <include refid="columns"/>
+        FROM product
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectPage" resultType="Product">
+        SELECT <include refid="columns"/>
+        FROM product
+        <include refid="conditions"/>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(*)
+        FROM product
+        <include refid="conditions"/>
+    </select>
+
+    <!-- useGeneratedKeys：插入后把自增主键回填到 product.id -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product (name, category_id, price, stock, sales, view_count,
+                             cover_img, description, status)
+        VALUES (#{name}, #{categoryId}, #{price}, #{stock}, #{sales}, #{viewCount},
+                #{coverImg}, #{description}, #{status})
+    </insert>
+
+    <!-- <set> 会自动去掉最后一个多余的逗号；只更新传了值的字段 -->
+    <update id="updateById">
+        UPDATE product
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="sales != null">sales = #{sales},</if>
+            <if test="coverImg != null">cover_img = #{coverImg},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE product SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updateViewCount">
+        UPDATE product SET view_count = #{viewCount} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM product WHERE id = #{id}
+    </delete>
+
+</mapper>

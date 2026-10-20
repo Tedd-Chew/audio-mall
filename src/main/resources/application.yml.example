@@ -1,13 +1,14 @@
+# 复制成 application.yml 再填真实值：cp application.yml.example application.yml
+# 中间件的账号密码跟项目根目录的 .env 保持一致
+
 server:
   port: 8080
 
 spring:
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
   datasource:
-    url: jdbc:mysql://localhost:3306/musilab_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: musilab_usr
+    # 端口 3307：3306 是本机已装的 MySQL，容器映射到了 3307
+    url: jdbc:mysql://localhost:3307/audio_mall?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
     password: <你的 MySQL 密码>
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
@@ -16,16 +17,20 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 1800000
-  redis:
-    host: localhost
-    port: 6379
-    password: <你的 Redis 密码>
-    database: 0
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
+
+  # Spring Boot 3 的路径是 spring.data.redis（2.x 是 spring.redis），写错不报错但连不上
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: <你的 Redis 密码>
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
   rabbitmq:
     host: localhost
     port: 5672
@@ -39,33 +44,27 @@ spring:
         max-concurrency: 4
         prefetch: 10
         auto-startup: true
+
   servlet:
     multipart:
       enabled: true
       max-file-size: 10MB
       max-request-size: 50MB
 
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.audiobackend.entity
+  configuration:
+    # 数据库的 cover_img 自动映射到 Java 的 coverImg
+    map-underscore-to-camel-case: true
+    # 开发时在控制台打印实际执行的 SQL
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 upload:
   base-path: ./uploads
   home-path: home
   product-path: product
 
-mybatis-plus:
-  global-config:
-    db-config:
-      id-type: auto
-
 jwt:
   secret: <随机字符串，建议 32 位以上>
   expire-time: 7200000
-
-ai:
-  api:
-    url: https://ark.cn-beijing.volces.com/api/v3/chat/completions
-    api-key: <你的 AI 平台 API Key>
-    model: deepseek-v3-2-251201
-
-python:
-  ai:
-    service:
-      url: http://localhost:8000/ai/chat

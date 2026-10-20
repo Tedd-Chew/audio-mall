@@ -1,9 +1,12 @@
 package com.example.audiobackend.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.audiobackend.entity.SysUser;
 
-public interface SysUserService extends IService<SysUser> {
-    // 自定义方法：根据用户名查询用户
+/**
+ * 后台管理员服务。
+ */
+public interface SysUserService {
+
+    /** 按用户名查，登录时用 */
     SysUser getUserByUsername(String username);
 }

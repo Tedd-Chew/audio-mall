@@ -6,8 +6,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.Resource;
-
 /**
  * Web 配置类：注册拦截器 + 解决跨域
  */
@@ -41,22 +39,17 @@ public class WebConfig implements WebMvcConfigurer {
                 
                 // 分类相关接口
                 "/api/category/**",
-                
-                // AI 全部放行
-                "/api/ai/**",
-                
+
                 // 文件上传接口
                 "/api/upload/**",
-                
+
                 // 静态资源：上传的图片文件
                 "/uploads/**",
 
                 // ====================== Swagger 放行 ======================
                 "/swagger-ui/**",
                 "/swagger-ui.html",
-                "/v3/api-docs/**",
-                "/swagger-resources/**",
-                "/webjars/**"
+                "/v3/api-docs/**"
             );
 }
 

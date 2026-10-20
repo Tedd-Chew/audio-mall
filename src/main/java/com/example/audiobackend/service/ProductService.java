@@ -1,30 +1,35 @@
 package com.example.audiobackend.service;
 
-import com.example.audiobackend.entity.Product;
-import java.util.List;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.audiobackend.common.PageResult;
+import com.example.audiobackend.dto.ProductDTO;
+import com.example.audiobackend.dto.ProductQuery;
+import com.example.audiobackend.vo.ProductVO;
 
-// 产品服务接口：定义所有产品相关的业务方法（只定义，不实现）
+/**
+ * 商品服务。
+ *
+ * 跟原来的接口比有两处变化：
+ * 1. 返回业务对象（ProductVO / PageResult），不再返回 Page&lt;T&gt; 这种 ORM 的类型
+ * 2. 失败不再返回 false，改成抛 BusinessException —— boolean 返回值要靠调用方
+ *    自己判断，忘了判断就静默失败
+ */
 public interface ProductService {
-    // 1. 获取所有产品列表 → 返回List<Product>
-    List<Product> list();
 
-    Page<Product> getProductPage(Integer pageNum, Integer pageSize);//实际上会用到sql中的limit语句进行分页。
-    // 2. 根据ID查询产品 → 入参Long id，返回Product
-    Product getById(Long id);
+    /** 商品详情，走 Redis 缓存 */
+    ProductVO getDetail(Long id);
 
-    // 3. 添加产品 → 入参Product对象，返回boolean（是否成功）
-    boolean add(Product product);
+    /** 商品列表分页 */
+    PageResult<ProductVO> page(ProductQuery query);
 
-    // 4. 修改产品 → 入参Product对象，返回boolean
-    boolean update(Product product);
+    /** 新增商品，返回新生成的主键 */
+    Long add(ProductDTO dto);
 
-    // 5. 删除产品 → 入参Long id，返回boolean
-    boolean delete(Long id);
+    /** 修改商品 */
+    void update(Long id, ProductDTO dto);
 
-    // 6. 获取所有产品（含已隐藏）→ 管理后台用
-    List<Product> listAll();
+    /** 上架 / 下架 */
+    void updateStatus(Long id, Integer status);
 
-    // 7. 切换产品显示/隐藏状态
-    boolean toggleDelete(Long id);
+    /** 删除商品 */
+    void delete(Long id);
 }

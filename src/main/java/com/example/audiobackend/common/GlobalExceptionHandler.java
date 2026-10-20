@@ -8,6 +8,9 @@ import io.jsonwebtoken.MalformedJwtException;
 // 1. 替换废弃的 SignatureException → 新增以下2个新异常类
 import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
@@ -57,5 +60,27 @@ public class GlobalExceptionHandler {
         log.error("系统异常：", e);
         // ② 返回友好提示给前端（不暴露具体异常信息）
         return Result.error("系统繁忙，请稍后重试！");
+    }
+
+    /**
+     * @Valid 参数校验失败。
+     * 不处理的话会掉进上面的 Exception 兜底，用户看到「系统繁忙」，
+     * 而实际原因是「商品名不能为空」—— 前端没法提示。
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<Void> handleValidation(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse("参数校验失败");
+        log.warn("参数校验失败：{}", message);
+        return Result.error(400, message);
+    }
+
+    /** 缺少必填的 query 参数，例如 /api/admin/product/1/status 没传 status */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public Result<Void> handleMissingParam(MissingServletRequestParameterException e) {
+        log.warn("缺少请求参数：{}", e.getParameterName());
+        return Result.error(400, "缺少参数：" + e.getParameterName());
     }
 }

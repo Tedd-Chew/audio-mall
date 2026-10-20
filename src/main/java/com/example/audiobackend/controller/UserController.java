@@ -65,7 +65,7 @@ public class UserController {
 
             String token = jwtUtil.generateToken(dbUser.getUsername(), dbUser.getId(), dbUser.getRole());
 
-            String redisKey = RedisConstant.TOKEN_PREFIX + dbUser.getId();
+            String redisKey = RedisConstant.USER_TOKEN + dbUser.getId();
             long expireSeconds = jwtUtil.getExpireTime() / 1000;
             stringRedisTemplate.opsForValue().set(redisKey, token, expireSeconds, TimeUnit.SECONDS);
 
@@ -94,7 +94,7 @@ public class UserController {
                 return Result.error("无效的Token");
             }
 
-            String redisKey = RedisConstant.TOKEN_PREFIX + userId;
+            String redisKey = RedisConstant.USER_TOKEN + userId;
             stringRedisTemplate.delete(redisKey);
 
             log.info("用户退出登录成功：用户ID {}", userId);

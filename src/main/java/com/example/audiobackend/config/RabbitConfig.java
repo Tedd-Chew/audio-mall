@@ -1,20 +1,23 @@
 package com.example.audiobackend.config;
-import org.springframework.amqp.core.Queue;
+
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import static com.example.audiobackend.constant.MqConstant.AI_QUESTION_QUEUE;
 
+/**
+ * RabbitMQ 配置。
+ * 具体的队列和交换机等到业务需要时再建（订单超时关闭、秒杀异步下单）。
+ */
 @Configuration
 public class RabbitConfig {
-    @Bean
-    public Queue aiQuestionQueue() {
-        return new Queue(AI_QUESTION_QUEUE, true);
-    }
 
+    /**
+     * 让 RabbitTemplate 发送对象时自动转成 JSON，消费时自动转回对象。
+     * 不配的话默认走 JDK 序列化：要求对象实现 Serializable，且消息体不可读。
+     */
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
-    }//spring启动时，会把messageConverter这个方法返回的对象，注入到rabbitTemplate中，这样我们在发送消息时，就可以直接传对象，底层会自动转换成JSON字符串发送到MQ队列中；消费者接收消息时，也会自动把JSON字符串转换成对象，简化了开发。
+    }
 }

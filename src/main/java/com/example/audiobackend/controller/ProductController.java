@@ -1,107 +1,40 @@
 package com.example.audiobackend.controller;
 
+import com.example.audiobackend.common.PageResult;
 import com.example.audiobackend.common.Result;
-import com.example.audiobackend.entity.Product;
-import com.example.audiobackend.entity.ProductCategory;
-import com.example.audiobackend.mapper.ProductCategoryMapper;
+import com.example.audiobackend.dto.ProductQuery;
 import com.example.audiobackend.service.ProductService;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.audiobackend.vo.ProductVO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-import org.springframework.web.bind.annotation.*;
-
+/**
+ * 商品查询接口（公开，未登录也能访问）。
+ * 增删改在 AdminProductController，路径带 /api/admin/，拦截器会校验管理员角色。
+ */
 @RestController
 @RequestMapping("/api/product")
-@CrossOrigin(originPatterns = "*")
+@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
-    private final ProductCategoryMapper productCategoryMapper;
 
-    @GetMapping("/list")
-    public Result<List<Product>> list() {
-        List<Product> products = productService.list();
-        
-        for (Product product : products) {
-            if (product.getCategoryId() != null) {
-                ProductCategory category = productCategoryMapper.selectById(product.getCategoryId());
-                if (category != null) {
-                    product.setCategoryName(category.getName());
-                } else {
-                    product.setCategoryName("未知分类");
-                }
-            } else {
-                product.setCategoryName("未分类");
-            }
-        }
-        
-        return Result.success(products);
-    }
-
+    /**
+     * 商品列表，分页。
+     * 例：/api/product/page?categoryId=1&status=1&pageNum=1&pageSize=10
+     * 前台调用应带 status=1 只看上架的；不传 status 是后台用法。
+     */
     @GetMapping("/page")
-    public Result<Page<Product>> page(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "3") Integer pageSize
-    ) {
-        return Result.success(productService.getProductPage(pageNum, pageSize));
+    public Result<PageResult<ProductVO>> page(ProductQuery query) {
+        return Result.success(productService.page(query));
     }
+
+    /** 商品详情，走 Redis 缓存 */
     @GetMapping("/{id}")
-    public Result<Product> getById(@PathVariable Long id) {
-        Product product = productService.getById(id);
-        if (product != null && product.getCategoryId() != null) {
-            ProductCategory category = productCategoryMapper.selectById(product.getCategoryId());
-            if (category != null) {
-                product.setCategoryName(category.getName());
-            } else {
-                product.setCategoryName("未知分类");
-            }
-        }
-        return Result.success(product);
+    public Result<ProductVO> detail(@PathVariable Long id) {
+        return Result.success(productService.getDetail(id));
     }
-
-    @PostMapping("/add")
-    public Result<Product> add(@RequestBody Product product) {
-        productService.add(product);
-        return Result.success(product);
-    }
-
-    @PutMapping("/update")
-    public Result<Void> update(@RequestBody Product product) {
-        productService.update(product);
-        return Result.success();
-    }
-
-    @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        productService.delete(id);
-        return Result.success();
-    }
-
-    @GetMapping("/admin/list")
-    public Result<List<Product>> adminList() {
-        List<Product> products = productService.listAll();
-        for (Product product : products) {
-            if (product.getCategoryId() != null) {
-                ProductCategory category = productCategoryMapper.selectById(product.getCategoryId());
-                product.setCategoryName(category != null ? category.getName() : "未知分类");
-            } else {
-                product.setCategoryName("未分类");
-            }
-        }
-        return Result.success(products);
-    }
-
-    @PutMapping("/toggle/{id}")
-    public Result<Void> toggleDelete(@PathVariable Long id) {
-        productService.toggleDelete(id);
-        return Result.success();
-    }
-
-    public ProductController(ProductService productService, ProductCategoryMapper productCategoryMapper)
-    {
-        this.productService = productService;
-        this.productCategoryMapper = productCategoryMapper;
-    }
-
 }
