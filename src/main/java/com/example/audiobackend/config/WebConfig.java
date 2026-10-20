@@ -28,6 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
             .addPathPatterns("/**") // 拦截所有
             .excludePathPatterns(
                 // ====================== 必须放行 ======================
+                "/api/user/register",             // 注册
                 "/api/user/login",                // 登录
 
                 // 产品列表 + 分页（用户没登录也能看商品）

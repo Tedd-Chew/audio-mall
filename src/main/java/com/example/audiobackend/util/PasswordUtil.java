@@ -31,9 +31,4 @@ public class PasswordUtil {
     public boolean match(String rawPassword, String encodedPassword) {
         return encoder.matches(rawPassword, encodedPassword);
     }
-
-    public static void main(String[] args) {
-    PasswordUtil util = new PasswordUtil();
-    System.out.println(util.encrypt("123456"));
-}
 }

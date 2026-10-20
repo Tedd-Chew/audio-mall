@@ -1,6 +1,7 @@
 package com.example.audiobackend.interceptor;
 
 import com.example.audiobackend.constant.RedisConstant;
+import com.example.audiobackend.constant.UserRole;
 import com.example.audiobackend.exception.BusinessException;
 import com.example.audiobackend.util.JwtUtil;
 
@@ -70,7 +71,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             }
 
             String role = jwtUtil.getRoleFromToken(token);
-            if (requestUri.startsWith("/api/admin/") && !"admin".equals(role)) {
+            if (requestUri.startsWith("/api/admin/") && !UserRole.ADMIN.equals(role)) {
                 log.warn("无管理员权限，用户ID：{}，角色：{}，URI：{}", userId, role, requestUri);
                 throw new BusinessException(403, "无管理员权限，禁止访问！");
             }

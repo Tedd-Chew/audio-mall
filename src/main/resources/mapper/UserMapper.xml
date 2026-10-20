@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.audiobackend.mapper.UserMapper">
+
+    <!-- 注意：user 是 MySQL 关键字，表名要加反引号 -->
+    <sql id="columns">
+        id, username, password, nickname, phone, role, status, create_time, update_time
+    </sql>
+
+    <select id="selectByUsername" resultType="User">
+        SELECT <include refid="columns"/>
+        FROM `user`
+        WHERE username = #{username}
+    </select>
+
+    <select id="selectById" resultType="User">
+        SELECT <include refid="columns"/>
+        FROM `user`
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user` (username, password, nickname, phone, role, status)
+        VALUES (#{username}, #{password}, #{nickname}, #{phone}, #{role}, #{status})
+    </insert>
+
+</mapper>
