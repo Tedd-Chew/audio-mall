@@ -35,6 +35,13 @@ public interface ProductMapper {
     /** 按 id 删除 */
     int deleteById(@Param("id") Long id);
 
+    /**
+     * 扣库存。
+     * 返回影响行数：1 = 扣成功，0 = 库存不足（WHERE 里的 stock >= 挡住了）。
+     * 扣减和判断在同一条 SQL 里完成，不会出现「查的时候够、改的时候不够」。
+     */
+    int decreaseStock(@Param("id") Long id, @Param("quantity") Integer quantity);
+
     /** 回写浏览量（定时任务把 Redis 里的计数同步回数据库） */
     int updateViewCount(@Param("id") Long id, @Param("viewCount") Integer viewCount);
 }

@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `password`    VARCHAR(100) NOT NULL                COMMENT 'BCrypt 加密后的密码',
     `nickname`    VARCHAR(50)           DEFAULT NULL   COMMENT '昵称',
     `phone`       VARCHAR(20)           DEFAULT NULL   COMMENT '手机号',
+    `role`        VARCHAR(20)  NOT NULL DEFAULT 'BUYER' COMMENT 'BUYER 买家 / ADMIN 管理员',
     `status`      TINYINT      NOT NULL DEFAULT 1      COMMENT '1 正常 / 0 禁用',
     `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

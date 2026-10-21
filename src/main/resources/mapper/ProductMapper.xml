@@ -74,4 +74,16 @@
         DELETE FROM product WHERE id = #{id}
     </delete>
 
+    <!--
+      扣库存的关键在 WHERE 里的 stock >= #{quantity}：
+      库存不够时这条 UPDATE 影响 0 行，调用方据此判断失败。
+      如果写成先 SELECT 再 UPDATE，两个请求之间就有窗口，会超卖。
+    -->
+    <update id="decreaseStock">
+        UPDATE product
+        SET stock = stock - #{quantity}
+        WHERE id = #{id}
+          AND stock >= #{quantity}
+    </update>
+
 </mapper>

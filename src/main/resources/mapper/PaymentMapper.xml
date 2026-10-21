@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.audiobackend.mapper.PaymentMapper">
+
+    <sql id="columns">
+        id, pay_no, order_id, user_id, pay_type, amount, status,
+        pay_time, create_time, update_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO payment (pay_no, order_id, user_id, pay_type, amount, status)
+        VALUES (#{payNo}, #{orderId}, #{userId}, #{payType}, #{amount}, #{status})
+    </insert>
+
+    <select id="selectByPayNo" resultType="Payment">
+        SELECT <include refid="columns"/>
+        FROM payment
+        WHERE pay_no = #{payNo}
+    </select>
+
+    <select id="selectByOrderId" resultType="Payment">
+        SELECT <include refid="columns"/>
+        FROM payment
+        WHERE order_id = #{orderId}
+        ORDER BY id ASC
+    </select>
+
+</mapper>
