@@ -44,6 +44,11 @@ public class WebConfig implements WebMvcConfigurer {
                 // 文件上传接口
                 "/api/upload/**",
 
+                // 支付回调：支付平台不是我们的用户，没有 token，身份靠验签证明
+                "/api/pay/callback",
+                // 模拟支付平台的收银台页面（相当于外部系统，不该要我们的 token）
+                "/api/mock-pay/**",
+
                 // 静态资源：上传的图片文件
                 "/uploads/**",
 

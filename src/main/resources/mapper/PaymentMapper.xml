@@ -26,4 +26,12 @@
         ORDER BY id ASC
     </select>
 
+    <!-- 回调幂等第一道闸门：返回 1 = 本次处理，0 = 重复回调 -->
+    <update id="markPaid">
+        UPDATE payment
+        SET status = 1, pay_time = #{payTime}
+        WHERE pay_no = #{payNo}
+          AND status = 0
+    </update>
+
 </mapper>

@@ -42,6 +42,14 @@ public interface ProductMapper {
      */
     int decreaseStock(@Param("id") Long id, @Param("quantity") Integer quantity);
 
+    /**
+     * 回滚库存（关单时用）。
+     *
+     * <p>没有 WHERE 条件，库存只会加不会减，但重复调用会加多。
+     * 调用方必须先确认关单成功（close 返回 1）才能调它。
+     */
+    int increaseStock(@Param("id") Long id, @Param("quantity") Integer quantity);
+
     /** 回写浏览量（定时任务把 Redis 里的计数同步回数据库） */
     int updateViewCount(@Param("id") Long id, @Param("viewCount") Integer viewCount);
 }

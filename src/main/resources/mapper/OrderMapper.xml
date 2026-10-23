@@ -25,4 +25,34 @@
         WHERE id = #{id}
     </select>
 
+    <!--
+      幂等的闸门：WHERE 带 status = 0。
+      判断（还是不是待支付）和写入（改成已支付）在同一条 SQL 里完成，
+      并发时第二个 UPDATE 会等锁，第一个提交后重新判断条件得到 0 行。
+    -->
+    <update id="markPaid">
+        UPDATE orders
+        SET status = 1, pay_time = #{payTime}
+        WHERE id = #{id}
+          AND status = 0
+    </update>
+
+    <!-- 关单同理。返回 1 才允许回滚库存，否则库存会多出来 -->
+    <update id="close">
+        UPDATE orders
+        SET status = 2, close_time = #{closeTime}
+        WHERE id = #{id}
+          AND status = 0
+    </update>
+
+    <!-- 走 idx_status_expire；ORDER BY expire_time 与索引顺序一致，不会 filesort -->
+    <select id="selectExpiredUnpaid" resultType="Order">
+        SELECT <include refid="columns"/>
+        FROM orders
+        WHERE status = 0
+          AND expire_time &lt; #{now}
+        ORDER BY expire_time ASC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

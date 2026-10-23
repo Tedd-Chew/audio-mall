@@ -120,7 +120,41 @@ public class OrderServiceImpl implements OrderService {
         vo.setCreateTime(order.getCreateTime());
         vo.setExpireTime(order.getExpireTime());
         vo.setItems(items.stream().map(this::toItemVO).toList());
+
+        // 前端要 payNo 才能调发起支付。当前一笔普通订单只有一张支付单，直接取第一张。
+        // 等 Sprint 6 做预售（定金 + 尾款两张）时再改这里的取舍。
+        List<Payment> payments = paymentMapper.selectByOrderId(order.getId());
+        if (!payments.isEmpty()) {
+            Payment payment = payments.get(0);
+            vo.setPayNo(payment.getPayNo());
+            vo.setPaymentStatus(payment.getStatus());
+        }
+
         return vo;
+    }
+
+    @Override
+    public List<Long> findExpiredOrderIds(int limit) {
+        return orderMapper.selectExpiredUnpaid(LocalDateTime.now(), limit)
+                .stream()
+                .map(Order::getId)
+                .toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean closeIfUnpaid(Long orderId) {
+        // 先改状态：WHERE status = 0 决定"这次关的是不是我"
+        if (orderMapper.close(orderId, LocalDateTime.now()) == 0) {
+            // 已被支付或已被别的实例关掉 —— 绝不能回滚库存
+            return false;
+        }
+        // 只有确认关单成功，才把库存加回去，且与状态变更在同一个事务里
+        for (OrderItem item : orderItemMapper.selectByOrderId(orderId)) {
+            productMapper.increaseStock(item.getProductId(), item.getQuantity());
+        }
+        log.info("超时关单，orderId={}", orderId);
+        return true;
     }
 
     private OrderItemVO toItemVO(OrderItem item) {

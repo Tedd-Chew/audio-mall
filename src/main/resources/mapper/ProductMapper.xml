@@ -86,4 +86,11 @@
           AND stock >= #{quantity}
     </update>
 
+    <!-- 关单回滚。调用方必须已确认 close() 返回 1，否则库存会凭空多出来 -->
+    <update id="increaseStock">
+        UPDATE product
+        SET stock = stock + #{quantity}
+        WHERE id = #{id}
+    </update>
+
 </mapper>
