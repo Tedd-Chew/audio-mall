@@ -77,3 +77,8 @@ CLAUDE.md
 
 # Docker 环境变量：含真实密码
 .env
+
+# 压测产物：token 是真实登录凭证，基线随每次跑变化，都不进版本库
+loadtest/tokens.json
+loadtest/last-baseline.json
+loadtest/result-*.json
