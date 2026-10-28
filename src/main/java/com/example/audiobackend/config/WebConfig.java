@@ -41,6 +41,9 @@ public class WebConfig implements WebMvcConfigurer {
                 // 分类相关接口
                 "/api/category/**",
 
+                // 秒杀活动详情（详情页不登录也能看；抢购在 /api/order/seckill，仍要登录）
+                "/api/seckill/*",
+
                 // 文件上传接口
                 "/api/upload/**",
 

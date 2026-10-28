@@ -1,6 +1,7 @@
 package com.example.audiobackend.service;
 
 import com.example.audiobackend.dto.CreateOrderDTO;
+import com.example.audiobackend.dto.SeckillOrderMessage;
 import com.example.audiobackend.vo.OrderVO;
 
 import java.util.List;
@@ -15,6 +16,17 @@ public interface OrderService {
      * 失败抛 BusinessException（库存不足、商品不存在、已下架）。
      */
     String createNormalOrder(Long userId, CreateOrderDTO dto);
+
+    /**
+     * 秒杀下单（MQ 消费者调用）。
+     *
+     * <p>和普通下单的区别：库存扣的是 {@code seckill_activity.stock}，不是 {@code product.stock}；
+     * 订单带 {@code activity_id}，关单时据此决定库存还到哪。
+     *
+     * <p>幂等靠 {@code orders.order_no} 唯一索引：重复消息插入时抛异常，整个事务回滚。
+     * 不在这里先查再插 —— 那样并发下两个消息会同时通过。
+     */
+    void createSeckillOrder(SeckillOrderMessage message);
 
     /** 按订单号查详情，前端轮询用 */
     OrderVO getByOrderNo(String orderNo);

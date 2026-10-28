@@ -4,8 +4,10 @@ import com.example.audiobackend.common.Result;
 import com.example.audiobackend.dto.CreateOrderDTO;
 import com.example.audiobackend.exception.BusinessException;
 import com.example.audiobackend.service.OrderService;
+import com.example.audiobackend.service.SeckillOrderService;
 import com.example.audiobackend.util.JwtUtil;
 import com.example.audiobackend.vo.OrderVO;
+import com.example.audiobackend.vo.SeckillResultVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
     private final OrderService orderService;
+    private final SeckillOrderService seckillOrderService;
     private final JwtUtil jwtUtil;
 
     /** 普通下单，返回订单号 */
@@ -32,6 +35,18 @@ public class OrderController {
     public Result<String> create(@RequestHeader("Authorization") String authHeader,
                                  @Valid @RequestBody CreateOrderDTO dto) {
         return Result.success(orderService.createNormalOrder(currentUserId(authHeader), dto));
+    }
+
+    /**
+     * 秒杀下单。
+     *
+     * <p>返回的 orderNo 不是"订单已创建"，而是"抢到名额，订单生成中"。
+     * 前端要拿它去轮询 {@code GET /api/order/{orderNo}}，查到订单才算真的成功。
+     */
+    @PostMapping("/seckill/{actId}")
+    public Result<SeckillResultVO> seckill(@RequestHeader("Authorization") String authHeader,
+                                           @PathVariable Long actId) {
+        return Result.success(seckillOrderService.seckill(actId, currentUserId(authHeader)));
     }
 
     /** 订单详情，前端支付后轮询用 */

@@ -31,6 +31,12 @@ public class Order {
     /** 见 SaleType：1 普通 / 2 秒杀 / 3 预售 */
     private Integer saleType;
 
+    /**
+     * 秒杀 / 预售活动 id，普通订单为 null。
+     * 关单时靠它决定库存还到哪：还 seckill_activity.stock 还是 product.stock。
+     */
+    private Long activityId;
+
     /** 见 OrderStatus：0 待支付 / 1 已支付 / 2 已关闭 / 3 待付尾款 */
     private Integer status;
 

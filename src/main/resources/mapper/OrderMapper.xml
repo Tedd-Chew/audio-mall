@@ -4,13 +4,14 @@
 <mapper namespace="com.example.audiobackend.mapper.OrderMapper">
 
     <sql id="columns">
-        id, order_no, user_id, total_amount, sale_type, status,
+        id, order_no, user_id, total_amount, sale_type, activity_id, status,
         expire_time, pay_time, close_time, create_time, update_time
     </sql>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO orders (order_no, user_id, total_amount, sale_type, status, expire_time)
-        VALUES (#{orderNo}, #{userId}, #{totalAmount}, #{saleType}, #{status}, #{expireTime})
+        INSERT INTO orders (order_no, user_id, total_amount, sale_type, activity_id, status, expire_time)
+        VALUES (#{orderNo}, #{userId}, #{totalAmount}, #{saleType},
+                #{activityId,jdbcType=BIGINT}, #{status}, #{expireTime})
     </insert>
 
     <select id="selectByOrderNo" resultType="Order">

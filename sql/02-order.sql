@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `user_id`      BIGINT         NOT NULL                COMMENT '买家 id',
     `total_amount` DECIMAL(10, 2) NOT NULL                COMMENT '订单总额',
     `sale_type`    TINYINT        NOT NULL DEFAULT 1      COMMENT '1 普通 / 2 秒杀 / 3 预售',
+    `activity_id`  BIGINT                  DEFAULT NULL   COMMENT '秒杀/预售活动 id；普通订单为 NULL。关单时要靠它决定库存还到哪',
     `status`       TINYINT        NOT NULL DEFAULT 0      COMMENT '0 待支付 / 1 已支付 / 2 已关闭 / 3 待付尾款',
     `expire_time`  DATETIME                DEFAULT NULL   COMMENT '支付截止时间，超时扫描的判据',
     `pay_time`     DATETIME                DEFAULT NULL   COMMENT '支付完成时间',
