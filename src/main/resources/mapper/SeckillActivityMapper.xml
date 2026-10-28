@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.audiobackend.mapper.SeckillActivityMapper">
+
+    <sql id="columns">
+        id, product_id, seckill_price, stock, limit_per_user,
+        start_time, end_time, status, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultType="SeckillActivity">
+        SELECT <include refid="columns"/>
+        FROM seckill_activity
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectNotFinished" resultType="SeckillActivity">
+        SELECT <include refid="columns"/>
+        FROM seckill_activity
+        WHERE status != 2
+        ORDER BY id ASC
+    </select>
+
+    <!-- 走 idx_status_time；ORDER BY end_time 与业务语义一致，到点的先处理 -->
+    <select id="selectExpiredRunning" resultType="SeckillActivity">
+        SELECT <include refid="columns"/>
+        FROM seckill_activity
+        WHERE status = 1
+          AND end_time &lt; NOW()
+        ORDER BY end_time ASC
+        LIMIT #{limit}
+    </select>
+
+    <!--
+      不超卖的最终裁决。Redis 只是过滤器，多放进来的人在 WHERE stock >= 1 这里被挡住。
+      判断和扣减压在同一条 SQL，并发时靠行锁串行化。
+    -->
+    <update id="decreaseStock">
+        UPDATE seckill_activity
+        SET stock = stock - 1
+        WHERE id = #{id}
+          AND stock >= 1
+    </update>
+
+    <!--
+      关单回滚。判断（活动结束了没）和写入（库存+1）压在同一条 SQL 里，
+      和下面的 finish 会锁同一行，两种执行顺序结果都正确：
+        - 先执行本条：活动库存 +1，之后 finish 读到含 +1 的剩余量还回商品
+        - 先执行 finish：本条 re-evaluate WHERE 得到 status=2，affected=0，
+          调用方改还 product.stock
+      用 status != 2 而不是 status = 1：未开始(0)的活动也不该走"还商品"分支，
+      虽然正常不会有未开始活动的订单。
+    -->
+    <update id="increaseStockIfNotFinished">
+        UPDATE seckill_activity
+        SET stock = stock + 1
+        WHERE id = #{id}
+          AND status != 2
+    </update>
+
+    <!-- 只从"进行中"改成"已结束"，重复执行返回 0，不会把已结束的活动再算一遍 -->
+    <update id="finish">
+        UPDATE seckill_activity
+        SET status = 2
+        WHERE id = #{id}
+          AND status = 1
+    </update>
+
+</mapper>

@@ -24,6 +24,22 @@ public final class RedisConstant {
     /** 登录 token：audio:user:token:{userId} */
     public static final String USER_TOKEN = PREFIX + "user:token:";
 
+    /** 秒杀库存：audio:seckill:stock:{actId} —— String，预热时从 DB 写入，Lua 扣减 */
+    public static final String SECKILL_STOCK = PREFIX + "seckill:stock:";
+
+    /**
+     * 秒杀已购记录：audio:seckill:bought:{actId} —— Hash，field = userId，value = 已买件数。
+     * 用 Hash 而不是 Set，是因为要支持"每人限购 N 件"：Set 只能回答"抢没抢过"，回答不了"抢了几件"。
+     * **必须设 TTL**，否则活动越开越多，这个 Hash 永远不释放。
+     */
+    public static final String SECKILL_BOUGHT = PREFIX + "seckill:bought:";
+
+    /** 秒杀时间窗：audio:seckill:meta:{actId} —— 供 Lua 判开始/结束，避免每个请求查一次库 */
+    public static final String SECKILL_META = PREFIX + "seckill:meta:";
+
+    /** 秒杀限流令牌桶：audio:seckill:rate:{actId} —— Hash，存 tokens 和上次补充时间 */
+    public static final String SECKILL_RATE = PREFIX + "seckill:rate:";
+
     private RedisConstant() {
     }
 }
