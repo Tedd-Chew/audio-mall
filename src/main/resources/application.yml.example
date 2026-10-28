@@ -67,7 +67,10 @@ upload:
 
 jwt:
   secret: <随机字符串，建议 32 位以上>
-  expire-time: 7200000
+  # Token 有效期（毫秒）。本地压测环境给 7 天，否则压测跑到一半 token 就过期；
+  # 生产环境应改回 7200000（2 小时）或更短。
+  # 这一个值同时决定 JWT 的 exp 和 Redis 里 user:token:{userId} 的 TTL。
+  expire-time: 604800000
 
 payment:
   # 支付回调的签名密钥 —— 相当于支付平台和我方共享的口令，绝不能出现在任何请求里。
@@ -75,3 +78,10 @@ payment:
   callback-secret: <随机字符串，建议 32 位以上>
   # 回调时间戳的容忍窗口（秒）。超出这个范围的回调一律判为重放。
   callback-tolerance-seconds: 300
+
+seckill:
+  rate:
+    # 令牌桶容量 = 允许的瞬时突发。参考 Tomcat 线程数（默认 200），先给 500
+    capacity: 500
+    # 每秒补充的令牌数 = 长期放行速率。按压测出来的单机上限调，先给 200
+    permits-per-second: 200
