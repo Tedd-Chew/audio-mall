@@ -5,6 +5,7 @@ import com.example.audiobackend.constant.UserRole;
 import com.example.audiobackend.exception.BusinessException;
 import com.example.audiobackend.util.JwtUtil;
 
+import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -43,15 +44,20 @@ public class JwtInterceptor implements HandlerInterceptor {
             token = token.replace("Bearer ", "").trim();
         }
         
+        Claims claims;
         try {
-            jwtUtil.validateToken(token);
+            // 只解析一次：userId 和 role 都从这一份 claims 里取。
+            // 原来 validateToken / getUserIdFromToken / getRoleFromToken 各解析一遍，
+            // 每次都重建 JWT 解析器 —— 而重建会触发 ServiceLoader 扫 classpath、打开 jar，
+            // 200 并发下 200 个线程全堵在 jar 的全局缓存上（见 docs/压测记录.md）。
+            claims = jwtUtil.parse(token);
         } catch (Exception e) {
             log.warn("Token校验失败，URI：{}，错误：{}", requestUri, e.getMessage());
             throw new BusinessException(401, "Token无效或已过期");
         }
 
         try {
-            Long userId = jwtUtil.getUserIdFromToken(token);
+            Long userId = claims.get("userId", Long.class);
             if (userId == null) {
                 log.warn("无法从Token解析用户ID，URI：{}", requestUri);
                 throw new BusinessException(401, "Token解析失败");
@@ -72,7 +78,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                 throw new BusinessException(401, "Token已失效（账号在其他设备登录）！");
             }
 
-            String role = jwtUtil.getRoleFromToken(token);
+            String role = claims.get("role", String.class);
             if (requestUri.startsWith("/api/admin/") && !UserRole.ADMIN.equals(role)) {
                 log.warn("无管理员权限，用户ID：{}，角色：{}，URI：{}", userId, role, requestUri);
                 throw new BusinessException(403, "无管理员权限，禁止访问！");

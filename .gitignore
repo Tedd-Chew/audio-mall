@@ -82,3 +82,6 @@ CLAUDE.md
 loadtest/tokens.json
 loadtest/last-baseline.json
 loadtest/result-*.json
+
+# 线程栈快照：每个约 1.7MB，结论已经摘进 docs/压测记录.md
+loadtest/dump*.txt
