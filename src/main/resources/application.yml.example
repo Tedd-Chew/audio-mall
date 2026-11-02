@@ -15,7 +15,9 @@ spring:
       maximum-pool-size: 20
       minimum-idle: 5
       idle-timeout: 30000
-      connection-timeout: 20000
+      # 借连接的超时。调小 = 依赖故障时失败得快、少占线程；
+      # 代价是"能自动扛住的停机时长"同比缩短（见 docs/可靠性实验.md E2）。
+      connection-timeout: 5000
       max-lifetime: 1800000
 
   # 定时任务默认只有 1 个线程，两个 @Scheduled 会互相阻塞：
@@ -33,6 +35,9 @@ spring:
       port: 6379
       password: <你的 Redis 密码>
       database: 0
+      # 命令超时，不配默认 60 秒 —— Redis 停机时每个请求都会卡满超时才报错。
+      timeout: 1s
+      connect-timeout: 200ms
       lettuce:
         pool:
           max-active: 8

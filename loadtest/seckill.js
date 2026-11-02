@@ -5,15 +5,18 @@
 //   k6 run -e MODE=single    seckill.js     1 个用户并发 200 次
 //   k6 run -e MODE=rate      seckill.js     1000 请求突发，看限流
 //   k6 run -e MODE=throughput seckill.js    500 VU 持续 30 秒
+//   k6 run -e MODE=consume -e TOKENS=./tokens-consume.json seckill.js
+//                                           300 个不同用户各抢 1 次，量消费端吞吐
 //
-// 依赖同目录的 tokens.json（由 seed-tokens.ps1 生成）
+// 依赖同目录的 tokens.json（由 seed-tokens.ps1 生成），可用 -e TOKENS= 换文件
 
 import http from 'k6/http';
 import { check } from 'k6';
 import { Counter } from 'k6/metrics';
 import { SharedArray } from 'k6/data';
 
-const tokens = new SharedArray('tokens', () => JSON.parse(open('./tokens.json')).tokens);
+const TOKEN_FILE = __ENV.TOKENS || './tokens.json';
+const tokens = new SharedArray('tokens', () => JSON.parse(open(TOKEN_FILE)).tokens);
 
 const MODE = __ENV.MODE || 'oversell';
 const ACT_ID = __ENV.ACT_ID || '1';
@@ -61,6 +64,15 @@ const SCENARIOS = {
     // 可用 -e VUS=20 覆盖，用来画「并发 → 延迟」曲线
     vus: parseInt(__ENV.VUS || '200'),
     duration: __ENV.DURATION || '30s',
+  },
+  // 只放一批货、让消费者慢慢做完：用来量「消费端 2 个线程每秒能干多少单」。
+  // 每个 VU 只发 1 次，索引走下面的 else 分支 = __VU - 1，所以 tokens 至少要有 300 个。
+  // 服务器端要先把 seckill_activity.stock 设成 1000，否则会被条件 UPDATE 挡掉。
+  consume: {
+    executor: 'per-vu-iterations',
+    vus: parseInt(__ENV.VUS || '300'),
+    iterations: 1,
+    maxDuration: '2m',
   },
 };
 

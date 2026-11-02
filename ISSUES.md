@@ -34,11 +34,17 @@
 
 ## 依赖故障（2026-11-02 E2 实测发现，见 `docs/可靠性实验.md`）
 
-- **Redis 不可用时每个请求卡 60 秒，还报成 401**：`JwtInterceptor` 的 `get(user:token:{id})` 走 Lettuce 默认 60 秒命令超时，异常被泛 `catch` 包成 `BusinessException(401, "Token解析失败")`。用户看到"登录失效"，会去重新登录（而此时登录也失败）；200 个并发请求就能占满 Tomcat 线程池。
-  - 修法（改配置即可，但要先定超时值）：`spring.data.redis.timeout: 1s`，并把 `RedisConnectionFailureException` 与鉴权失败分开处理，返回 503 而不是 401。
-- **MySQL 不可用时一条消息占消费者线程 115 秒**：`hikari.connection-timeout: 20000` 乘以 5 次尝试，加上 1/2/4/8 秒退避。库存 100 的场景下这不会积压，但堆积 100 条消息就要 115×100/并发数。
-  - 修法：`connection-timeout` 降到 2 秒；或者消费端先用 `SELECT 1` 探活，不通就直接 nack 进死信，不在线程里耗。
-- **MySQL 恢复后不自动补单**：消息在死信里躺着，要靠人手动重放。和上面「死信没有监控和自动重放」是同一条。
+- ~~**Redis 不可用时每个请求卡 60 秒，还报成 401**~~ —— **已修**。`spring.data.redis.timeout: 1s` + `connect-timeout: 200ms`；`JwtInterceptor` 单独捕获 `RedisConnectionFailureException` / `QueryTimeoutException` 报 503。实测 60,087 ms / 401 → 1,043 ms / 503，Redis 恢复后第一个请求也从 24 秒降到 74 毫秒。
+- ~~**MySQL 不可用时一条消息占消费者线程 115 秒**~~ —— **已修**。`hikari.connection-timeout` 20s → 5s，一条消息进死信从 115 秒降到 41 秒。**代价**：能自动扛住的停机时长同比缩短（这两个是同一个数），40 秒覆盖一次常规重启（实测启动 6.2 秒）够用，更长的停机走死信 + 重放。
+- **MySQL 恢复后不自动补单**：消息在死信里躺着，要靠人手动重放。和下面「死信没有监控和自动重放」是同一条。
+
+## 消费吞吐天花板（2026-11-02 E3 实测，见 `docs/可靠性实验.md`）
+
+- **加消费线程没有用**：并发 1 / 2 / 4 的吞吐都是 25~29 单/秒，只有单条耗时线性变长（39 / 69 / 151 毫秒）。瓶颈是 `UPDATE seckill_activity SET stock=stock-1 WHERE id=?` —— 所有订单抢同一行的行锁，数据库那边就是一条队。
+- **现在不做优化**，理由：一次放 100~1000 件，29 单/秒对应 3.4~34 秒，用户等得起。
+- 真要提上去有两条路，代价都写在 `docs/可靠性实验.md` 的 E3 里：
+  - 库存拆桶（`seckill_activity` 一行拆成 N 行，按 userId 取模）—— 能线性扩，但要改扣减逻辑和回滚逻辑。
+  - Redis 当唯一扣减口径，DB 只落流水 —— 快，但要处理 Redis 丢数据的对账。
 
 ## 商品域（Sprint 2 处理）
 

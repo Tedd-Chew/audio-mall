@@ -79,7 +79,7 @@ CLAUDE.md
 .env
 
 # 压测产物：token 是真实登录凭证，基线随每次跑变化，都不进版本库
-loadtest/tokens.json
+loadtest/tokens*.json
 loadtest/last-baseline.json
 loadtest/result-*.json
 

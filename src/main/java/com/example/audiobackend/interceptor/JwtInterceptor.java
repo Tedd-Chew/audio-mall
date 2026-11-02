@@ -8,6 +8,8 @@ import com.example.audiobackend.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -89,6 +91,13 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         } catch (BusinessException e) {
             throw e;
+        } catch (RedisConnectionFailureException | QueryTimeoutException e) {
+            // "Redis 连不上"和"你没登录"是两件事，不能报成同一个 401。
+            // 前端收到 401 的默认动作是清 token 跳登录页：一次 30 秒的 Redis 重启
+            // 会变成一次全员重新登录，而登录本身也要写 Redis，于是全员登不回来。
+            // 实测（docs/可靠性实验.md E2）：停机时每个请求卡 60 秒后返回 401。
+            log.error("鉴权时 Redis 不可用，URI：{}，错误：{}", requestUri, e.getMessage(), e);
+            throw new BusinessException(503, "系统繁忙，请稍后重试");
         } catch (Exception e) {
             log.error("Token解析异常，URI：{}，错误：{}", requestUri, e.getMessage(), e);
             throw new BusinessException(401, "Token解析失败：" + e.getMessage());
