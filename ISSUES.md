@@ -32,6 +32,14 @@
 - **用户侧没有「失败」状态**：消息进了死信，用户在页面上看到的始终是「排队中」，订单永远不出现，也没有接口告诉他失败了。
 - **幂等门过期后补偿会失效**：门 TTL 1 天，1 天后的重复请求（撞 `uk_user_request`）撤不了扣减，只能少卖。极端情况，靠对账兜。
 
+## 依赖故障（2026-11-02 E2 实测发现，见 `docs/可靠性实验.md`）
+
+- **Redis 不可用时每个请求卡 60 秒，还报成 401**：`JwtInterceptor` 的 `get(user:token:{id})` 走 Lettuce 默认 60 秒命令超时，异常被泛 `catch` 包成 `BusinessException(401, "Token解析失败")`。用户看到"登录失效"，会去重新登录（而此时登录也失败）；200 个并发请求就能占满 Tomcat 线程池。
+  - 修法（改配置即可，但要先定超时值）：`spring.data.redis.timeout: 1s`，并把 `RedisConnectionFailureException` 与鉴权失败分开处理，返回 503 而不是 401。
+- **MySQL 不可用时一条消息占消费者线程 115 秒**：`hikari.connection-timeout: 20000` 乘以 5 次尝试，加上 1/2/4/8 秒退避。库存 100 的场景下这不会积压，但堆积 100 条消息就要 115×100/并发数。
+  - 修法：`connection-timeout` 降到 2 秒；或者消费端先用 `SELECT 1` 探活，不通就直接 nack 进死信，不在线程里耗。
+- **MySQL 恢复后不自动补单**：消息在死信里躺着，要靠人手动重放。和上面「死信没有监控和自动重放」是同一条。
+
 ## 商品域（Sprint 2 处理）
 
 - `ProductServiceImpl` 需要拆分：`getById` 一个方法 200 行，缓存、分布式锁、业务逻辑全混在一起；手写的锁用 `setIfAbsent` + 无校验 `delete`，有误删他人锁的风险；递归重试 `return getById(id)` 可能栈溢出；`price` 用 `Double` 存钱，要改 `BigDecimal`
