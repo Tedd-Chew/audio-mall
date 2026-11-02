@@ -4,15 +4,27 @@
 <mapper namespace="com.example.audiobackend.mapper.OrderMapper">
 
     <sql id="columns">
-        id, order_no, user_id, total_amount, sale_type, activity_id, status,
+        id, order_no, user_id, total_amount, sale_type, activity_id, request_id, status,
         expire_time, pay_time, close_time, create_time, update_time
     </sql>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO orders (order_no, user_id, total_amount, sale_type, activity_id, status, expire_time)
+        INSERT INTO orders (order_no, user_id, total_amount, sale_type, activity_id, request_id, status, expire_time)
         VALUES (#{orderNo}, #{userId}, #{totalAmount}, #{saleType},
-                #{activityId,jdbcType=BIGINT}, #{status}, #{expireTime})
+                #{activityId,jdbcType=BIGINT}, #{requestId,jdbcType=VARCHAR}, #{status}, #{expireTime})
     </insert>
+
+    <!--
+      幂等撞键之后取回原单。
+      request_id 为 NULL 时这个查询永远不命中 —— 等价于"本次不做幂等"。
+    -->
+    <select id="selectByUserAndRequestId" resultType="Order">
+        SELECT <include refid="columns"/>
+        FROM orders
+        WHERE user_id = #{userId}
+          AND request_id = #{requestId}
+        LIMIT 1
+    </select>
 
     <select id="selectByOrderNo" resultType="Order">
         SELECT <include refid="columns"/>

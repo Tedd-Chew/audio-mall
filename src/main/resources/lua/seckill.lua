@@ -17,11 +17,13 @@
 -- KEYS[2] = audio:seckill:stock:{actId}   库存（String）
 -- KEYS[3] = audio:seckill:bought:{actId}  已购（Hash: userId -> 件数）
 -- KEYS[4] = audio:seckill:meta:{actId}    活动配置（Hash）
+-- KEYS[5] = audio:seckill:idem:{actId}:{userId}:{requestId}  幂等门（String: orderNo）
 -- ARGV[1] = userId
 -- ARGV[2] = 当前 epoch 秒
 -- ARGV[3] = 桶容量 capacity（瞬时突发上限）
 -- ARGV[4] = 每秒补令牌数 rate（长期速率）
 -- ARGV[5] = 当前 epoch 毫秒
+-- ARGV[6] = orderNo（写进幂等门，重复请求时原样还回去）
 --
 -- 返回：{'0', productId, seckillPrice} 成功
 --       {'code'}                      失败
@@ -35,6 +37,7 @@ local now = tonumber(ARGV[2])
 local capacity = tonumber(ARGV[3])
 local rate = tonumber(ARGV[4])
 local nowMs = tonumber(ARGV[5])
+-- ARGV[6] = orderNo，只用来写进幂等键（KEYS[5]），不参与判断
 
 -- ① 令牌桶：先挡流量，挡住的请求不碰后面任何逻辑
 --    放在最前面是为了保持和 v1 一致的语义（v1 也是限流先跑），
@@ -113,11 +116,38 @@ if meta[4] == false or meta[5] == false then
     return {'3'}
 end
 
--- ⑥ 扣减 + 记账，与上面所有判断在同一次执行里，不可分割
+-- ⑥ 幂等门：走到这里说明令牌、时间窗、库存、限购、商品信息全都过了，马上就要扣库存。
+--
+--    为什么放在这个位置，而不是最前面：
+--      放最前面的话，所有失败分支都会在 Redis 里留下一个占位（售罄了也占着），
+--      用户重试会被判定"重复提交"，拿到一个根本不存在的订单 —— 等于把自己锁死一整天。
+--      放在扣减之前就不需要任何回滚：后面只剩 INCRBY / HINCRBY / EXPIRE，它们不会失败。
+--
+--    KEY 里已经带了 actId + userId + requestId，所以这里不需要再传 requestId 参数。
+--    值存 orderNo：重复请求能把上次的单号原样还回去，用户看到的是同一张订单。
+--
+--    ARGV[7] = '1' 才启用。客户端没传 requestId 时传 '0' —— 我们就不写这个 key。
+--    为什么不写个随机值糊弄过去：那样每个请求都会留下一个 key，
+--    4,000 QPS 下一个活动就是几百万个垃圾 key。
+--
+--    过期时间 1 天，不是 10 分钟。这个 key 同时承担两件事：
+--      ① 拦重复提交，把上次的单号还回去
+--      ② 当补偿的幂等守卫（见 seckill-compensate.lua）
+--    TTL 太短的后果：用户 10 分钟后用同一个 requestId 重试 → 门已过期 → 这里放行并扣库存
+--    → 消费者 insert 撞 uk_user_request（库里已有同 requestId 的旧单）→ 只能走补偿还回去。
+--    补偿本身也会失败，失败了就是永久少卖。它是兜底，不该变成日常路径。
+--    代价：每个成功订单多留一个 key，留 1 天。日订单 1 万时约 1.5MB。
+if ARGV[7] == '1' then
+    if not redis.call('SET', KEYS[5], ARGV[6], 'NX', 'EX', 86400) then
+        return {'7', redis.call('GET', KEYS[5])}
+    end
+end
+
+-- ⑦ 扣减 + 记账，与上面所有判断在同一次执行里，不可分割
 redis.call('INCRBY', KEYS[2], -1)
 redis.call('HINCRBY', KEYS[3], userId, 1)
 
--- ⑦ 已购记录必须设 TTL，否则活动越开越多、这个 Hash 永远不释放
+-- ⑧ 已购记录必须设 TTL，否则活动越开越多、这个 Hash 永远不释放
 redis.call('EXPIRE', KEYS[3], 3 * 24 * 3600)
 
 return {'0', meta[4], meta[5]}

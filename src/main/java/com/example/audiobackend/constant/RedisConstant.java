@@ -40,6 +40,16 @@ public final class RedisConstant {
     /** 秒杀限流令牌桶：audio:seckill:rate:{actId} —— Hash，存 tokens 和上次补充时间 */
     public static final String SECKILL_RATE = PREFIX + "seckill:rate:";
 
+    /**
+     * 秒杀幂等门：audio:seckill:idem:{actId}:{userId}:{requestId} —— String，值 = orderNo。
+     *
+     * <p>在扣库存**之前**用 SET NX 占位。为什么值要存 orderNo：重复请求能直接把上次的单号还回去，
+     * 用户看到的还是同一张订单，而不是一句"重复提交"。
+     *
+     * <p>TTL 600 秒：覆盖"网络超时重试 + 刷新重试"的窗口，超过 10 分钟就当新的意图。
+     */
+    public static final String SECKILL_IDEM = PREFIX + "seckill:idem:";
+
     private RedisConstant() {
     }
 }

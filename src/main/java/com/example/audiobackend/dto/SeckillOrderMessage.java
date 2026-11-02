@@ -30,4 +30,13 @@ public class SeckillOrderMessage {
 
     /** 抢到那一刻的秒杀价 */
     private BigDecimal seckillPrice;
+
+    /**
+     * 客户端幂等键，原样带下去写进 orders.request_id。
+     *
+     * <p>秒杀路径的重复请求在 Redis 那道门就被挡住了，正常情况下不会走到消费者；
+     * 带上它只是为了 DB 唯一索引这一层兜底（比如 Redis 整库丢了）。
+     * 不传为 null。
+     */
+    private String requestId;
 }

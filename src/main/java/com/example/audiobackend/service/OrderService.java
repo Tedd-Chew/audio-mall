@@ -28,6 +28,24 @@ public interface OrderService {
      */
     void createSeckillOrder(SeckillOrderMessage message);
 
+    /**
+     * 消费端撞唯一索引之后的收尾。必须在事务<b>外</b>调用 —— 事务已经回滚了。
+     *
+     * <p>撞的是哪个索引，含义完全相反，必须区分：
+     * <ul>
+     *   <li>{@code uk_order_no}：同一条消息被重复投递，订单早就建好了 —— 什么都不做</li>
+     *   <li>{@code uk_user_request}：这个 (用户, requestId) 已经有一张<b>别的</b>订单，
+     *       本次扣减永远建不出订单 —— 必须把名额和幂等门还回去，否则永久少卖一件</li>
+     * </ul>
+     *
+     * <p>判据是「按 order_no 能不能查到」。撞 {@code uk_order_no} 必然查得到；
+     * 撞 {@code uk_user_request} 时消息里的 order_no 是新的，查不到。
+     *
+     * <p>正常返回 = 这条消息处理完了（订单本来就在，或者已经撤销掉那次注定失败的扣减）。
+     * 抛异常 = 还没处理完（比如撤销时 Redis 不可用），调用方应该重试这条消息。
+     */
+    void resolveSeckillDuplicate(SeckillOrderMessage message);
+
     /** 按订单号查详情，前端轮询用 */
     OrderVO getByOrderNo(String orderNo);
 

@@ -37,6 +37,12 @@ public class Order {
      */
     private Long activityId;
 
+    /**
+     * 客户端幂等键。同一次提交的重试复用同一个值，配合 {@code uk_user_request} 唯一索引，
+     * 让"同一次提交到达两次"只生效一次。不传为 null（MySQL 唯一索引允许多个 NULL，等于不做幂等）。
+     */
+    private String requestId;
+
     /** 见 OrderStatus：0 待支付 / 1 已支付 / 2 已关闭 / 3 待付尾款 */
     private Integer status;
 

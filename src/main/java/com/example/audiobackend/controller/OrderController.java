@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -42,11 +43,16 @@ public class OrderController {
      *
      * <p>返回的 orderNo 不是"订单已创建"，而是"抢到名额，订单生成中"。
      * 前端要拿它去轮询 {@code GET /api/order/{orderNo}}，查到订单才算真的成功。
+     *
+     * <p>{@code requestId} 可选：传了就有幂等（重复提交返回第一次的 orderNo），
+     * 不传就是老行为。暂时不强制，方便测试。
      */
     @PostMapping("/seckill/{actId}")
     public Result<SeckillResultVO> seckill(@RequestHeader("Authorization") String authHeader,
-                                           @PathVariable Long actId) {
-        return Result.success(seckillOrderService.seckill(actId, currentUserId(authHeader)));
+                                           @PathVariable Long actId,
+                                           @RequestParam(required = false) String requestId) {
+        return Result.success(
+                seckillOrderService.seckill(actId, currentUserId(authHeader), requestId));
     }
 
     /** 订单详情，前端支付后轮询用 */

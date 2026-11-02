@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `total_amount` DECIMAL(10, 2) NOT NULL                COMMENT '订单总额',
     `sale_type`    TINYINT        NOT NULL DEFAULT 1      COMMENT '1 普通 / 2 秒杀 / 3 预售',
     `activity_id`  BIGINT                  DEFAULT NULL   COMMENT '秒杀/预售活动 id；普通订单为 NULL。关单时要靠它决定库存还到哪',
+    `request_id`   VARCHAR(64)             DEFAULT NULL   COMMENT '客户端幂等键。重试时复用同一个值；不传为 NULL（MySQL 唯一索引允许多个 NULL，等于关闭幂等）',
     `status`       TINYINT        NOT NULL DEFAULT 0      COMMENT '0 待支付 / 1 已支付 / 2 已关闭 / 3 待付尾款',
     `expire_time`  DATETIME                DEFAULT NULL   COMMENT '支付截止时间，超时扫描的判据',
     `pay_time`     DATETIME                DEFAULT NULL   COMMENT '支付完成时间',
@@ -23,6 +24,10 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `update_time`  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`),
+    -- 下单幂等的判据：同一个用户 + 同一个 requestId 只能有一张订单。
+    -- 为什么是唯一索引而不是"先查后插"：两个并发请求会同时查不到，然后同时插入。
+    -- 为什么带 user_id：requestId 由客户端生成，不同用户的 id 空间可能撞。
+    UNIQUE KEY `uk_user_request` (`user_id`, `request_id`),
     -- "我的订单"：WHERE user_id=? ORDER BY create_time DESC
     KEY `idx_user_time` (`user_id`, `create_time`),
     -- 超时扫描：WHERE status=0 AND expire_time<NOW()

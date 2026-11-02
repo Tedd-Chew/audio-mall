@@ -22,6 +22,13 @@ public interface OrderMapper {
     Order selectById(@Param("id") Long id);
 
     /**
+     * 按 (user_id, request_id) 查订单 —— 幂等撞键之后把原来那张单取回来。
+     *
+     * <p>request_id 为 NULL 时永远查不到：NULL 表示这次调用不做幂等。
+     */
+    Order selectByUserAndRequestId(@Param("userId") Long userId, @Param("requestId") String requestId);
+
+    /**
      * 支付成功：UNPAID(0) → PAID(1)。
      *
      * <p>WHERE 带 status = 0，返回影响行数：

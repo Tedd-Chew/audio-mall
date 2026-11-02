@@ -18,13 +18,16 @@ import com.example.audiobackend.mapper.ProductMapper;
 import com.example.audiobackend.mapper.SeckillActivityMapper;
 import com.example.audiobackend.service.OrderService;
 import com.example.audiobackend.service.SeckillActivityService;
+import com.example.audiobackend.service.SeckillOrderService;
 import com.example.audiobackend.util.BizNoGenerator;
 import com.example.audiobackend.vo.OrderItemVO;
 import com.example.audiobackend.vo.OrderVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,10 +53,50 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentMapper paymentMapper;
     private final SeckillActivityMapper seckillActivityMapper;
     private final SeckillActivityService seckillActivityService;
+    private final SeckillOrderService seckillOrderService;
 
+    /**
+     * 用来把普通下单包成一个事务。
+     *
+     * <p>不用 @Transactional 的原因见 {@link #createNormalOrder} 的注释：
+     * 我们需要在事务<b>结束之后</b>捕获唯一键冲突，再查原单返回。
+     */
+    private final TransactionTemplate transactionTemplate;
+
+    /**
+     * 普通下单（带幂等）。
+     *
+     * <p><b>为什么用 TransactionTemplate，而不是 @Transactional：</b>
+     * 撞唯一索引抛出的 {@link DuplicateKeyException} 必须在<b>事务结束之后</b>才能处理。
+     * 在 @Transactional 方法内部 catch 它是不行的 —— Spring 已经把事务标成 rollback-only，
+     * 之后就算查到原单、想正常返回，提交时也会变成 UnexpectedRollbackException。
+     * TransactionTemplate 把"事务在哪结束"写得很直白：execute 返回或抛出，就是边界。
+     */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public String createNormalOrder(Long userId, CreateOrderDTO dto) {
+        try {
+            return transactionTemplate.execute(status -> doCreateNormalOrder(userId, dto));
+        } catch (DuplicateKeyException e) {
+            // 撞的是 uk_user_request：同一个 (userId, requestId) 已经下过单。
+            // 事务已回滚，刚才那次库存扣减也一起撤销了 —— 这里什么都不用补偿。
+            Order existing = orderMapper.selectByUserAndRequestId(userId, dto.getRequestId());
+            if (existing == null) {
+                // requestId 为 null 时唯一索引不会报这个错，能走到这里说明撞的是别的键（order_no）
+                throw e;
+            }
+            log.info("重复下单，返回原订单 orderNo={}，userId={}，requestId={}",
+                    existing.getOrderNo(), userId, dto.getRequestId());
+            return existing.getOrderNo();
+        }
+    }
+
+    /**
+     * 真正干活的那一段，由 {@link TransactionTemplate} 包成一个事务。
+     *
+     * <p>扣库存放在插订单之前：万一插入撞了唯一键，事务回滚会把这次扣减一起撤销，
+     * 所以不会出现"扣了库存但没订单"。
+     */
+    private String doCreateNormalOrder(Long userId, CreateOrderDTO dto) {
         // 1. 校验商品
         Product product = productMapper.selectById(dto.getProductId());
         if (product == null) {
@@ -83,6 +126,7 @@ public class OrderServiceImpl implements OrderService {
         order.setUserId(userId);
         order.setTotalAmount(totalAmount);
         order.setSaleType(SaleType.NORMAL);
+        order.setRequestId(dto.getRequestId());
         order.setStatus(OrderStatus.UNPAID);
         order.setExpireTime(LocalDateTime.now().plusMinutes(UNPAID_TIMEOUT_MINUTES));
         orderMapper.insert(order);
@@ -210,6 +254,9 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(message.getSeckillPrice());
         order.setSaleType(SaleType.SECKILL);
         order.setActivityId(message.getActId());
+        // 秒杀的重复请求在 Redis 那道门就被挡住了，正常情况下走不到这里；
+        // 带上 requestId 只是让 DB 唯一索引这一层也能兜底（比如 Redis 整库丢了）。
+        order.setRequestId(message.getRequestId());
         order.setStatus(OrderStatus.UNPAID);
         order.setExpireTime(LocalDateTime.now().plusMinutes(SECKILL_TIMEOUT_MINUTES));
         orderMapper.insert(order);
@@ -240,6 +287,33 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("秒杀订单创建成功，orderNo={}，actId={}，userId={}，金额={}",
                 order.getOrderNo(), message.getActId(), message.getUserId(), message.getSeckillPrice());
+    }
+
+    /**
+     * 消费端撞唯一索引之后，判断该 ack 还是该撤销扣减。
+     *
+     * <p>不在事务里：调用时事务已经回滚了，这里做的都是"事务之后"的收尾。
+     */
+    @Override
+    public void resolveSeckillDuplicate(SeckillOrderMessage message) {
+        // 撞 uk_order_no 时按单号必然查得到；撞 uk_user_request 时这个单号是新的，查不到。
+        // 所以这一次查询同时回答了"撞的是哪个索引"和"订单是否已经存在"。
+        if (orderMapper.selectByOrderNo(message.getOrderNo()) != null) {
+            log.info("秒杀消息重复投递，订单已存在，无需处理 orderNo={}", message.getOrderNo());
+            return;
+        }
+
+        // 走到这里：库里已经有 (userId, requestId) 的另一张单，本次扣减永远建不出来。
+        // 不撤销就是永久少卖一件 —— 这是老版本当成"重复消息"直接 ack 掉的地方。
+        log.warn("秒杀订单撞 uk_user_request 但本单号不存在，撤销这次扣减。"
+                        + "orderNo={}，actId={}，userId={}，requestId={}",
+                message.getOrderNo(), message.getActId(), message.getUserId(), message.getRequestId());
+
+        if (!seckillOrderService.compensateRejected(message)) {
+            // 撤销失败（Redis 不可用 / 门已过期）→ 这条消息还没处理完，让调用方重试。
+            // 补偿脚本是幂等的，重试一次不会多还名额。
+            throw new IllegalStateException("撤销秒杀扣减失败，orderNo=" + message.getOrderNo());
+        }
     }
 
     private OrderItemVO toItemVO(OrderItem item) {
