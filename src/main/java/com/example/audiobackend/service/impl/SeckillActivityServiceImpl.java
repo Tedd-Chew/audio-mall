@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,16 @@ public class SeckillActivityServiceImpl implements SeckillActivityService {
 
     /** meta 的 TTL：活动最长按天算，给 7 天足够，避免活动删了 key 还留着 */
     private static final long META_TTL_SECONDS = 7 * 24 * 3600L;
+
+    /**
+     * 库存 key 的兜底 TTL。
+     *
+     * <p>正常由活动收尾任务删除，这里只防「收尾任务删失败 → 库存 key 永久残留」。
+     * 取 30 天而不是「活动结束 + 1 天」：活动被延长时 TTL 不会跟着更新，
+     * 算得太紧反而可能在活动进行中把库存 key 过期掉 —— 活动突然卖不了，
+     * 比残留一个 key 严重得多。
+     */
+    private static final Duration STOCK_TTL = Duration.ofDays(30);
 
     private final SeckillActivityMapper seckillActivityMapper;
     private final ProductMapper productMapper;
@@ -198,6 +209,13 @@ public class SeckillActivityServiceImpl implements SeckillActivityService {
         // 直接 SET 会把已放行的名额再放一遍 → 超卖
         Boolean created = stringRedisTemplate.opsForValue()
                 .setIfAbsent(stockKey, String.valueOf(activity.getStock()));
+
+        // 给库存 key 一个很长的兜底过期（30 天），防止活动收尾任务删 key 失败时永久残留。
+        //
+        // 为什么不用「活动结束时间 + 1 天」：活动可以被延长（改 end_time），而 TTL 是写死的、
+        // 不会跟着更新，那样可能在活动进行中把库存 key 过期掉 —— 活动突然卖不了，
+        // 比残留一个 key 严重得多。30 天远长于任何秒杀活动，风险接近 0。
+        stringRedisTemplate.expire(stockKey, STOCK_TTL);
 
         // 其余字段每次覆盖写：它们不会被扣减，数据库的值永远是对的
         String metaKey = RedisConstant.SECKILL_META + activity.getId();

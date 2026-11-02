@@ -147,7 +147,13 @@ end
 redis.call('INCRBY', KEYS[2], -1)
 redis.call('HINCRBY', KEYS[3], userId, 1)
 
--- ⑧ 已购记录必须设 TTL，否则活动越开越多、这个 Hash 永远不释放
-redis.call('EXPIRE', KEYS[3], 3 * 24 * 3600)
+-- ⑧ 已购记录必须设过期，否则活动越开越多、这个 Hash 永远不释放。
+--
+--    过期时间跟活动走（活动结束 + 1 天），不是固定 3 天。原因：
+--      固定 3 天时，如果活动本身开超过 3 天，Hash 会在活动进行中被清空，
+--      已购记录归零 —— 用户就能突破 limitPerUser 再买一轮。
+--    用 EXPIREAT 而不是 EXPIRE：endTime 是绝对时间戳，不管这次请求发生在
+--    活动刚开始还是快结束，记录都在同一个时刻过期，不会因为每次购买都续期而漂移。
+redis.call('EXPIREAT', KEYS[3], endTime + 86400)
 
 return {'0', meta[4], meta[5]}

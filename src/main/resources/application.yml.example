@@ -18,6 +18,14 @@ spring:
       connection-timeout: 20000
       max-lifetime: 1800000
 
+  # 定时任务默认只有 1 个线程，两个 @Scheduled 会互相阻塞：
+  # OrderTimeoutTask 一轮扫完之后，SeckillActivityCloseTask 才开始跑。
+  # 给 2 个线程，各自独立调度。两个任务本身都是条件 UPDATE，多实例/并发都安全。
+  task:
+    scheduling:
+      pool:
+        size: 2
+
   # Spring Boot 3 的路径是 spring.data.redis（2.x 是 spring.redis），写错不报错但连不上
   data:
     redis:
