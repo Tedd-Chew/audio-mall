@@ -38,10 +38,16 @@ public class RabbitConfig {
      *
      * <p>durable = true 保证队列定义活过重启。消息本身默认是持久化的
      * （Spring 的 RabbitTemplate 默认 deliveryMode = PERSISTENT），不用额外配。
+     *
+     * <p>挂了死信交换机：消费端调用 basicNack(requeue=false) 时，消息不是消失，
+     * 而是被转投到死信队列。没有这一段，「重试到上限」等于「静默丢弃」。
      */
     @Bean
     public Queue seckillOrderQueue() {
-        return QueueBuilder.durable(MqConstant.SECKILL_ORDER_QUEUE).build();
+        return QueueBuilder.durable(MqConstant.SECKILL_ORDER_QUEUE)
+                .deadLetterExchange(MqConstant.SECKILL_ORDER_DLX)
+                .deadLetterRoutingKey(MqConstant.SECKILL_ORDER_DLQ_ROUTING_KEY)
+                .build();
     }
 
     @Bean
@@ -49,5 +55,24 @@ public class RabbitConfig {
         return BindingBuilder.bind(seckillOrderQueue)
                 .to(seckillExchange)
                 .with(MqConstant.SECKILL_ORDER_ROUTING_KEY);
+    }
+
+    /** 死信交换机：只服务秒杀下单的失败消息 */
+    @Bean
+    public DirectExchange seckillOrderDlx() {
+        return new DirectExchange(MqConstant.SECKILL_ORDER_DLX, true, false);
+    }
+
+    /** 死信队列：消息留在这里不删，可以事后查、可以重放回主交换机 */
+    @Bean
+    public Queue seckillOrderDlq() {
+        return QueueBuilder.durable(MqConstant.SECKILL_ORDER_DLQ).build();
+    }
+
+    @Bean
+    public Binding seckillOrderDlqBinding(Queue seckillOrderDlq, DirectExchange seckillOrderDlx) {
+        return BindingBuilder.bind(seckillOrderDlq)
+                .to(seckillOrderDlx)
+                .with(MqConstant.SECKILL_ORDER_DLQ_ROUTING_KEY);
     }
 }

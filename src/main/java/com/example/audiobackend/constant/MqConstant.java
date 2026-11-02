@@ -15,4 +15,17 @@ public interface MqConstant {
     String SECKILL_ORDER_QUEUE = "audio.seckill.order.queue";
 
     String SECKILL_ORDER_ROUTING_KEY = "audio.seckill.order";
+
+    /**
+     * 死信交换机。
+     *
+     * <p>主队列收到 basicNack(requeue=false) 时，消息会被转投到这里 —— 这就是「死信」，
+     * 指的是消费端明确拒绝、或者是重试到上限之后放弃的消息。
+     */
+    String SECKILL_ORDER_DLX = "audio.seckill.dlx";
+
+    /** 死信队列：重试仍失败的订单停在这里，等人工或定时任务重放 */
+    String SECKILL_ORDER_DLQ = "audio.seckill.order.dlq";
+
+    String SECKILL_ORDER_DLQ_ROUTING_KEY = "audio.seckill.order.dlq";
 }
