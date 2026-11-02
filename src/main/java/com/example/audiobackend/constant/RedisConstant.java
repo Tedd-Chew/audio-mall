@@ -46,7 +46,10 @@ public final class RedisConstant {
      * <p>在扣库存**之前**用 SET NX 占位。为什么值要存 orderNo：重复请求能直接把上次的单号还回去，
      * 用户看到的还是同一张订单，而不是一句"重复提交"。
      *
-     * <p>TTL 600 秒：覆盖"网络超时重试 + 刷新重试"的窗口，超过 10 分钟就当新的意图。
+     * <p>TTL 1 天，不是 10 分钟。这个 key 同时承担两件事：拦重复提交、当补偿脚本的幂等守卫。
+     * 太短的后果是用户 10 分钟后用同一个 requestId 重试 → 门已过期 → 放行并扣库存
+     * → 消费者撞 {@code uk_user_request} → 只能走补偿还回去，而补偿本身也可能失败。
+     * 代价是每个成功订单多留一个 key 留 1 天（日订单 1 万时约 1.5MB）。
      */
     public static final String SECKILL_IDEM = PREFIX + "seckill:idem:";
 
