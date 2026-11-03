@@ -1,7 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <property name="LOG_PATH" value="logs"/>
-    <property name="LOG_FILE" value="audio-backend"/>
+
+    <!-- 日志文件名按端口区分：两个实例各写各的文件。
+         不分的话两个 JVM 会往同一个 audio-backend.log 里写，日志交错、分不清谁打的，
+         而且滚动（rotation）时两个进程抢同一个文件重命名 —— Windows 上有文件锁，会丢日志。
+         source="server.port" 读的是 Spring 的属性，所以启动时用 server.port=8081 会自动生效，
+         启动命令不用多带参数。单实例时不传就是 8080，和以前一样。
+         注意：XML 注释里不能出现连续两个减号（那些启动参数写法只能写在注释外面）。 -->
+    <springProperty name="INSTANCE_PORT" source="server.port" defaultValue="8080"/>
+    <property name="LOG_FILE" value="app-${INSTANCE_PORT}"/>
+
+    <!-- 业务日志级别默认 INFO。要临时排查，启动时把
+         logging.level.com.example.audiobackend 设成 DEBUG，不用改这个文件。
+         原来写死 DEBUG 的代价：JwtInterceptor:89 每个请求打一行，
+         实测 3,428 QPS 时约 570 KB/s，10MB 文件每 17 秒滚一次；
+         而 FileAppender 是同步的，这次写盘就发生在请求线程上。 -->
+    <springProperty name="APP_LOG_LEVEL"
+                    source="logging.level.com.example.audiobackend"
+                    defaultValue="INFO"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -47,7 +64,7 @@
         </rollingPolicy>
     </appender>
 
-    <logger name="com.example.audiobackend" level="DEBUG"/>
+    <logger name="com.example.audiobackend" level="${APP_LOG_LEVEL}"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
