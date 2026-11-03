@@ -25,6 +25,16 @@ Write-Host "=== 重置活动 $ActId：库存 $Stock，限购 $LimitPerUser ==="
 
 # ① 数据库：刷新时间窗和配置
 $sql = @"
+-- 先清掉未支付订单，再设库存。
+--
+-- 不清的后果（2026-11-03 实测踩到）：一张 20:48 创建的未支付单已经扣过 1 件库存，
+-- 这里把库存强设成 100 却没有算它；20:54 超时关单任务把它关掉、退回 1 件，
+-- 库存就变成了 101 → 压测卖出了 104 件（100 + 4 张过期单退回的）。
+-- 看起来像超卖，实际是重置脚本把一个不该重置的瞬间重置了。
+DELETE FROM order_item WHERE order_id IN (SELECT id FROM orders WHERE status = 0);
+DELETE FROM payment    WHERE order_id IN (SELECT id FROM orders WHERE status = 0);
+DELETE FROM orders     WHERE status = 0;
+
 UPDATE seckill_activity
    SET start_time = NOW() - INTERVAL 1 HOUR,
        end_time   = NOW() + INTERVAL $DurationMinutes MINUTE,
