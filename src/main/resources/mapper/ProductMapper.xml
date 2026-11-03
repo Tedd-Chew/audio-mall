@@ -66,10 +66,6 @@
         UPDATE product SET status = #{status} WHERE id = #{id}
     </update>
 
-    <update id="updateViewCount">
-        UPDATE product SET view_count = #{viewCount} WHERE id = #{id}
-    </update>
-
     <delete id="deleteById">
         DELETE FROM product WHERE id = #{id}
     </delete>

@@ -15,9 +15,6 @@ public final class RedisConstant {
     /** 商品空值缓存：audio:product:null:{id} —— 防止同一个不存在的 id 反复打数据库 */
     public static final String PRODUCT_NULL = PREFIX + "product:null:";
 
-    /** 商品浏览量：audio:product:view:{id} —— Redis 累加，定时回写数据库 */
-    public static final String PRODUCT_VIEW = PREFIX + "product:view:";
-
     /** 商品缓存重建锁：audio:product:lock:{id} —— 目前没用上，Sprint 8 做多实例时启用 */
     public static final String PRODUCT_LOCK = PREFIX + "product:lock:";
 

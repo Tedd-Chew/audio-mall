@@ -48,4 +48,6 @@
 
 ## 商品域（Sprint 2 处理）
 
+- **浏览量功能已整体删除**（2026-11-03）。原来的设计是「Redis `INCR` 累加 → 定时任务回写 MySQL」，思路本身是对的（避开 `UPDATE product` 的热点行），但那个同步任务从不干活：key 前缀写成 `product:*`（实际是 `audio:product:view:*`）、`if (keys != null && !keys.isEmpty()) return;` 判断反了、把 String 当 Hash 读。而且 `ProductVO` 里根本没有 `viewCount` 字段 —— 这个数字从来没返回给前端，页面上看不到。所以连带删掉了同步任务、`PlatformThreadPoolConfig`（唯一用户就是它）、`ProductMapper.updateViewCount`（无调用方）和 `RedisConstant.PRODUCT_VIEW`。
+  - **不要改成「每次详情页 UPDATE view_count = view_count + 1」**：秒杀期间大量用户涌入详情页，改的是同一行，就是 E3 里那个热点行更新，会把这个页面拖死。要恢复这个功能，还是得「Redis 累加 + 定时批量落库」，而且定时任务要写对。
 - `ProductServiceImpl` 需要拆分：`getById` 一个方法 200 行，缓存、分布式锁、业务逻辑全混在一起；手写的锁用 `setIfAbsent` + 无校验 `delete`，有误删他人锁的风险；递归重试 `return getById(id)` 可能栈溢出；`price` 用 `Double` 存钱，要改 `BigDecimal`

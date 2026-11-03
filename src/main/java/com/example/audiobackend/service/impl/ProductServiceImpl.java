@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -43,7 +42,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductCategoryMapper productCategoryMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
-    private final ThreadPoolExecutor threadPoolExecutor;
 
     // ==================== 查询 ====================
 
@@ -61,7 +59,6 @@ public class ProductServiceImpl implements ProductService {
         // 2. 正常缓存命中
         String cached = stringRedisTemplate.opsForValue().get(RedisConstant.PRODUCT_INFO + id);
         if (cached != null) {
-            asyncAddViewCount(id);
             return toVO(fromJson(cached), null);
         }
 
@@ -98,7 +95,6 @@ public class ProductServiceImpl implements ProductService {
         }
 
         writeCache(product);
-        asyncAddViewCount(id);
 
         ProductCategory category = productCategoryMapper.selectById(product.getCategoryId());
         return toVO(product, category == null ? null : category.getName());
@@ -216,23 +212,6 @@ public class ProductServiceImpl implements ProductService {
         } catch (JsonProcessingException e) {
             log.error("商品缓存反序列化失败，内容：{}", json, e);
             throw new BusinessException("商品数据异常，请稍后重试");
-        }
-    }
-
-    /** 浏览量异步累加：详情接口不该为了一个计数多等一次 Redis 往返 */
-    private void asyncAddViewCount(Long productId) {
-        try {
-            threadPoolExecutor.execute(() -> {
-                try {
-                    stringRedisTemplate.opsForValue()
-                            .increment(RedisConstant.PRODUCT_VIEW + productId);
-                } catch (Exception e) {
-                    log.error("浏览量累加失败，id={}", productId, e);
-                }
-            });
-        } catch (Exception e) {
-            // 线程池满了不该影响用户看商品
-            log.warn("浏览量任务提交失败，id={}", productId, e);
         }
     }
 

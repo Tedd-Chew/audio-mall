@@ -49,7 +49,4 @@ public interface ProductMapper {
      * 调用方必须先确认关单成功（close 返回 1）才能调它。
      */
     int increaseStock(@Param("id") Long id, @Param("quantity") Integer quantity);
-
-    /** 回写浏览量（定时任务把 Redis 里的计数同步回数据库） */
-    int updateViewCount(@Param("id") Long id, @Param("viewCount") Integer viewCount);
 }
