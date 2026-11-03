@@ -46,6 +46,13 @@
   - 库存拆桶（`seckill_activity` 一行拆成 N 行，按 userId 取模）—— 能线性扩，但要改扣减逻辑和回滚逻辑。
   - Redis 当唯一扣减口径，DB 只落流水 —— 快，但要处理 Redis 丢数据的对账。
 
+## 接口吞吐上限（2026-11-03 E4 实测，见 `docs/瓶颈定位实验.md`）
+
+- **接口上限约 3,900 QPS，200 个 Tomcat 线程已经是甜点。** 把线程和并发同时提到 400，QPS 反而降到 3,428，平均延迟从 51ms 翻到 116ms。
+- **瓶颈是 Redis，不是 CPU、不是 MySQL。** 压测时 Redis 约占 48% 的一个核，MySQL 1%、Java 6%。Redis 单线程执行命令，所有实例、所有请求都排在同一个线程后面 —— 所以**加实例救不了接口吞吐**。双实例的定位是"高可用 + 滚动发版"，不是吞吐。
+- **下一步唯一有效的优化是减少每个请求的 Redis 往返**：现在每请求 2 次（`GET user:token` + `EVALSHA seckill.lua`）。去掉 JWT 那次 GET 是最大的单笔收益，代价是失去"单设备登录"能力（要另想办法，比如把 token 版本号放进 JWT 里本地校验）。
+- **未查清**：Redis 只用到 48% 就到顶，说明排队不全在 Redis 的 CPU 上。嫌疑是 Lettuce 单连接多路复用的争用，或每请求一次 AOF 写（令牌桶的 `HSET`）。要定位得做分段计时。
+
 ## 商品域（Sprint 2 处理）
 
 - **浏览量功能已整体删除**（2026-11-03）。原来的设计是「Redis `INCR` 累加 → 定时任务回写 MySQL」，思路本身是对的（避开 `UPDATE product` 的热点行），但那个同步任务从不干活：key 前缀写成 `product:*`（实际是 `audio:product:view:*`）、`if (keys != null && !keys.isEmpty()) return;` 判断反了、把 String 当 Hash 读。而且 `ProductVO` 里根本没有 `viewCount` 字段 —— 这个数字从来没返回给前端，页面上看不到。所以连带删掉了同步任务、`PlatformThreadPoolConfig`（唯一用户就是它）、`ProductMapper.updateViewCount`（无调用方）和 `RedisConstant.PRODUCT_VIEW`。
