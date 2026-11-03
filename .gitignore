@@ -75,8 +75,12 @@ note.markdown
 refresh_note.markdown
 CLAUDE.md
 
-# Docker 环境变量：含真实密码
+# Docker 环境变量：含真实密码（deploy/.env 也被这一行覆盖）
 .env
+
+# 应用的生产环境变量：数据库/Redis 密码、JWT 与支付回调密钥
+# 模板见 deploy/app.env.example
+deploy/app.env
 
 # 压测产物：token 是真实登录凭证，基线随每次跑变化，都不进版本库
 loadtest/tokens*.json

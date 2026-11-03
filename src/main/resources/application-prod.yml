@@ -1,0 +1,54 @@
+# 生产环境配置：只写"和本地不同的项"，application.yml 里的其他配置照常生效。
+# 启动方式：java -jar app.jar --spring.profiles.active=prod
+#
+# 所有敏感值都用 ${ENV} 占位、从环境变量注入，不写默认值 —— 缺一个就启动失败。
+# 为什么故意不给默认值：给了默认值，漏配的时候应用会带着"开发密码"静默起来，
+# 你看到的是"启动成功"，实际连的是错的库、用的是弱密钥。宁可起不来。
+
+server:
+  # 只监听回环：8080 不对公网开放，外部只能经过 Nginx。少一个暴露面。
+  address: 127.0.0.1
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:audio_mall}?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&characterEncoding=utf8
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+  rabbitmq:
+    host: ${MQ_HOST:127.0.0.1}
+    port: ${MQ_PORT:5672}
+    username: ${MQ_USER:admin}
+    password: ${MQ_PASSWORD}
+
+mybatis:
+  configuration:
+    # 本地用 StdOutImpl 是为了看 SQL；生产留着的话，每条 SQL 都往控制台写一行，
+    # 而控制台输出走的是同步 IO，直接压在请求线程上。压测实测过：这一个配置
+    # 能把吞吐从约 10,900 QPS 拖到 3,883 QPS，而且看起来像"业务代码慢"。
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+jwt:
+  secret: ${JWT_SECRET}
+  # 本地 7 天是为了压测 token 池不用每 2 小时重刷；生产 2 小时。
+  expire-time: ${JWT_EXPIRE_TIME:7200000}
+
+payment:
+  callback-secret: ${PAYMENT_CALLBACK_SECRET}
+
+upload:
+  base-path: ${UPLOAD_BASE_PATH:/opt/audio-mall/uploads}
+
+# 关掉接口文档。SpringDoc 默认开着，/v3/api-docs 会列出全部接口和参数，
+# /swagger-ui/index.html 是个可交互的调用页面 —— 在公网 IP 上实测都是 200。
+# 对内部有用、对公众是白送的攻击面清单。
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

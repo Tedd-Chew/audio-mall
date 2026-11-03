@@ -1,0 +1,32 @@
+[Unit]
+Description=audio-mall backend (Spring Boot)
+Documentation=https://github.com/
+After=network-online.target docker.service
+Wants=network-online.target
+# 依赖 Docker：MySQL / Redis 都在容器里，容器没起来应用也起不来
+Requires=docker.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/audio-mall
+EnvironmentFile=/opt/audio-mall/app.env
+ExecStart=/usr/bin/java -Xmx512m -XX:+UseG1GC -Duser.timezone=Asia/Shanghai -jar /opt/audio-mall/app.jar --spring.profiles.active=prod
+
+# 进程意外退出就重启。这是"只有一个实例"时唯一的可用性保障：
+# 没有 Nginx 后面的第二个实例，靠它把单点拉回来。
+Restart=always
+RestartSec=5
+# 收到 SIGTERM（systemctl stop）按正常退出码处理，不记为失败
+SuccessExitStatus=143
+
+LimitNOFILE=65535
+
+# 控制台输出单独存档。业务日志由 logback 写到 /opt/audio-mall/logs/app-8080.log，
+# 这里只兜住 JVM 自己的输出（启动参数、OOM 堆栈、GC 警告）。
+StandardOutput=append:/opt/audio-mall/logs/stdout.log
+StandardError=append:/opt/audio-mall/logs/stdout.log
+
+[Install]
+WantedBy=multi-user.target

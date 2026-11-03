@@ -1,0 +1,88 @@
+# audio-mall 生产环境中间件
+#
+# 只编排 MySQL 和 Redis 两个容器。RabbitMQ 复用机器上已有的容器（不重复起一个），
+# 应用本身是宿主机上的 systemd 服务（见 audio-mall.service），不进容器 ——
+# 原因：这台机器 3.6 GB 内存，多一层容器网络和镜像构建没收益，而 systemd
+# 的 `systemctl status / journalctl` 排查比 `docker logs` 直接。
+#
+# 密码从同目录的 .env 读（不进版本库，模板见 .env.example）。
+# 未设置时 docker compose 会直接报错退出（`:?` 语法），不会带着空密码启动。
+
+name: audio-mall
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: audio-mall-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD 未设置，请先配置 .env}
+      MYSQL_DATABASE: audio_mall
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+08:00
+      # 默认 128M 之外没给更多：这台机器总共 3.6 GB，同时还跑着 Java 和 RabbitMQ。
+      # 我们的表不到 10 MB（100 个商品 + 几万订单），128M 的 buffer pool 绰绰有余。
+      - --innodb-buffer-pool-size=128M
+      # performance_schema 常驻约 200 MB。我们不用它，关掉。
+      - --performance-schema=OFF
+      - --max-connections=200
+    ports:
+      # 只绑回环：容器端口不对公网开放，避免"数据库裸奔"这类最常见的事故
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      # 首次初始化时按文件名顺序执行：01 建表、02 补充表结构
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    mem_limit: 512m
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: audio-mall-redis
+    restart: always
+    environment:
+      # 健康检查里要用到，必须作为容器内环境变量传进去
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD 未设置，请先配置 .env}
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD 未设置，请先配置 .env}
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      # noeviction 而不是 allkeys-lru：Redis 里放的是秒杀库存、幂等键、登录态。
+      # 被淘汰掉不会报错，只会表现为"库存莫名其妙变多""同一个请求下了两单"。
+      # 宁可写失败（立刻报错、日志可查），也不要静默丢数据。
+      - --maxmemory-policy
+      - noeviction
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    mem_limit: 384m
+
+  nginx:
+    image: nginx:alpine
+    container_name: audio-mall-nginx
+    restart: always
+    # host 网络：Nginx 直接监听宿主机 80，upstream 写 127.0.0.1:8080 就是宿主机上的应用。
+    # 用桥接网络的话要绕 host.docker.internal（本地 Windows 上踩过 IPv6 不通导致 502）。
+    network_mode: host
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./logs/nginx:/var/log/nginx
+    mem_limit: 64m
