@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "秒杀下单全链路：原子扣减、异步落库与幂等兜底",
+    "subtitle": "库存一致性与重复消费的处理顺序",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/seckill-sequence.html",
+    "viewBox": [1080, 640],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Tedd-Chew/audio-mall",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "93e33525c4de204162bb91d5417df8a89b1ea520"
+    }
+  },
+  "participants": [
+    { "id": "client", "type": "external", "label": "压测客户端", "sublabel": "k6" },
+    { "id": "nginx", "type": "cloud", "label": "Nginx", "sublabel": "双实例轮询" },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "订单服务",
+      "sublabel": "Tomcat 200 线程",
+      "sources": [
+        { "path": "src/main/java/com/example/audiobackend/service/impl/SeckillOrderServiceImpl.java", "line": 60, "label": "seckill 入口" }
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis + Lua",
+      "sublabel": "原子扣减",
+      "sources": [
+        { "path": "src/main/resources/lua/seckill.lua", "line": 65, "label": "令牌桶 / 扣减" }
+      ]
+    },
+    { "id": "mq", "type": "messagebus", "label": "RabbitMQ", "sublabel": "削峰 + 死信" },
+    {
+      "id": "consumer",
+      "type": "backend",
+      "label": "消费端",
+      "sublabel": "手动 ack",
+      "sources": [
+        { "path": "src/main/java/com/example/audiobackend/listener/SeckillOrderListener.java", "line": 56, "label": "监听器" }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "MySQL",
+      "sublabel": "唯一索引兜底",
+      "sources": [
+        { "path": "src/main/java/com/example/audiobackend/service/impl/OrderServiceImpl.java", "line": 79, "label": "唯一索引冲突" }
+      ]
+    }
+  ],
+  "segments": [
+    { "from": 150, "to": 197, "label": "接入" },
+    { "from": 204, "to": 252, "label": "一次原子扣减" },
+    { "from": 260, "to": 307, "label": "异步入队" },
+    { "from": 315, "to": 419, "label": "消费落库" },
+    { "from": 427, "to": 503, "label": "失败兜底" }
+  ],
+  "messages": [
+    { "id": "order-req", "from": "client", "to": "nginx", "y": 160, "label": "POST /seckill/1?requestId=…", "variant": "emphasis" },
+    { "id": "proxy", "from": "nginx", "to": "app", "y": 187, "label": "轮询转发", "variant": "default" },
+    { "id": "lua", "from": "app", "to": "redis", "y": 214, "label": "EVALSHA seckill.lua", "variant": "emphasis" },
+    { "id": "lua-result", "from": "redis", "to": "app", "y": 242, "label": "0 成功 / 7 重复 / 1 售罄", "variant": "return" },
+    { "id": "publish", "from": "app", "to": "mq", "y": 270, "label": "publish 订单消息", "variant": "dashed" },
+    { "id": "queue-reply", "from": "app", "to": "client", "y": 297, "label": "排队中 + orderNo", "variant": "return" },
+    { "id": "deliver", "from": "mq", "to": "consumer", "y": 325, "label": "deliver", "variant": "default" },
+    { "id": "insert", "from": "consumer", "to": "db", "y": 353, "label": "INSERT + 条件 UPDATE", "variant": "emphasis" },
+    { "id": "insert-result", "from": "db", "to": "consumer", "y": 381, "label": "成功 / 1062 冲突", "variant": "return" },
+    { "id": "ack", "from": "consumer", "to": "mq", "y": 409, "label": "手动 ACK", "variant": "dashed" },
+    { "id": "rollback", "from": "consumer", "to": "redis", "y": 437, "label": "回滚名额 INCR+HDEL", "variant": "dashed" },
+    { "id": "retry", "from": "consumer", "to": "mq", "y": 465, "label": "重试 1/2/4/8s", "variant": "dashed" },
+    { "id": "dlq", "from": "consumer", "to": "mq", "y": 493, "label": "耗尽 → DLQ", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "nginx", "from": 160, "to": 191, "type": "cloud" },
+    { "participant": "app", "from": 187, "to": 300, "type": "backend" },
+    { "participant": "redis", "from": 214, "to": 247, "type": "database" },
+    { "participant": "mq", "from": 270, "to": 497, "type": "messagebus" },
+    { "participant": "consumer", "from": 325, "to": 497, "type": "backend" },
+    { "participant": "db", "from": 353, "to": 386, "type": "database" },
+    { "participant": "redis", "from": 437, "to": 442, "type": "database" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "库存一致性",
+      "items": [
+        "Redis 扣的是「名额」，MySQL 才是账本，两边要对得上",
+        "Lua 里检查与扣减一步完成，中间没有窗口，所以不会超卖",
+        "DB 写失败（真实冲突）必须把 Redis 名额加回去，否则名额凭空消失"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Lua 里的执行顺序",
+      "items": [
+        "幂等快路径 → 令牌桶限流 → 时间窗 → 库存 → 一人一单 → 写幂等并扣减",
+        "幂等判断放在最前且只读：重复请求不消耗令牌、不碰库存",
+        "限流在扣库存之前：先挡掉无效请求，避免库存被刷空"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "撞唯一索引的两种含义",
+      "items": [
+        "uk_order_no 冲突 = 同一条消息重复投递，订单早建好了，直接 ack",
+        "uk_user_request 冲突 = 同一用户另一单真抢到了，本次必须回滚名额",
+        "判据是「按 order_no 查不查得到」，不能一律当成重复"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "分布式的三个前提",
+      "items": [
+        "应用无状态：库存、幂等、会话全在 Redis/MySQL/MQ",
+        "所以 Nginx 轮询即可，不需要粘性会话",
+        "手动 ack + prefetch 10：进程被杀时未确认消息会重投，靠唯一索引兜住"
+      ]
+    }
+  ]
+}

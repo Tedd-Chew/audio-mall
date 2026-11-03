@@ -1,479 +1,253 @@
-# Musilab Audio 音响产品管理系统
+# 音响商城后端（audio-mall）
 
-一款面向企业级应用的**音响产品全生命周期管理前后端系统**，采用 SpringBoot + 静态HTML主流技术栈构建，集成高并发缓存架构、RabbitMQ 异步消息队列、RAG 智能问答、定时数据同步、图片上传管理等核心能力。系统严格遵循生产级开发规范，完美解决高并发场景下的缓存问题，支持大规模请求并发处理，是 Java 后端求职/实习/毕设的优质实战项目。
+一个按 **「先让它坏，再修好」** 原则写的秒杀商城后端：每个技术决定都对应一次"不做会坏"的实验，
+结论和推翻过程都留在 `docs/` 里。
 
-## 🌟 项目特性
+核心不是"把功能做完"，而是能回答三个问题：**为什么会超卖 / 为什么会重复下单 / 瓶颈到底在哪一层。**
 
-- **高并发支撑**：Redis 多级缓存 + RabbitMQ 消息削峰，轻松应对并发请求
-- **数据安全**：JWT 无状态认证、全局异常处理、SQL 安全校验
-- **异步解耦**：自定义线程池 + RabbitMQ 实现耗时任务异步化，不阻塞主线程
-- **AI 增强**：RAG 检索增强生成，基于业务数据实现智能问答
-- **数据一致性**：定时任务 + 事务保证 Redis 与 MySQL 数据最终一致
-- **图片管理**：支持主页图、产品封面图、产品详情图上传，分类名称目录存储
-- **生产规范**：统一响应格式、分层架构、缓存防穿透/雪崩/击穿
-- **多环境部署**：Maven Profiles 支持开发/生产环境一键切换
+---
 
-## 🛠️ 核心技术栈
+## 技术栈
 
-### 后端技术栈
+| 层 | 选型 |
+|---|---|
+| 语言 / 框架 | Java 21、Spring Boot 3.5.16 |
+| 持久层 | MyBatis 3.x（XML 映射）、MySQL 8.0 |
+| 缓存 / 原子操作 | Redis 7.4（Lettuce 连接池、Lua 脚本） |
+| 消息 | RabbitMQ 3.13（手动 ack、DLX 死信） |
+| 认证 | JWT（jjwt 0.11.5）+ Redis 单端登录 |
+| 接口文档 | SpringDoc（生产环境关闭） |
+| 压测 | k6、wrk、redis-benchmark |
+| 部署 | Docker Compose（中间件）+ 云服务器 |
 
-| 分类 | 技术框架 |
-|------|----------|
-| 核心框架 | SpringBoot 2.7.x |
-| 数据持久化 | MyBatis-Plus + MySQL 8.0 |
-| 缓存&高并发 | Redis（RDB+AOF持久化、热点缓存）|
-| 消息队列&异步 | RabbitMQ（消息削峰、异步解耦）|
-| 认证授权 | JWT 无状态登录认证 |
-| 并发调度 | 自定义线程池、Spring Task 定时任务 |
-| AI 智能模块 | RAG 检索增强 + 大模型对话 |
-| 工程化工具 | Lombok、Maven、Postman |
-| 全局规范 | 统一返回体、全局异常处理、事务控制 |
+---
 
-### 前端技术栈
+## 整体架构
 
-| 分类 | 技术框架 |
-|------|----------|
-| 页面结构 | HTML5 + CSS3 + JavaScript (原生) |
-| UI框架 | Bootstrap 4.x |
-| 图片轮播 | Slick Carousel |
-| 弹窗效果 | Magnific Popup |
-| 图标库 | Font Awesome 5.x |
-| jQuery | jQuery 1.9.1 |
-| HTTP客户端 | jQuery Ajax |
-| 代理服务器 | Node.js (http-proxy-middleware) |
-
-## 📐 系统架构
-
-### 后端架构
-
-```
-请求层 → Controller → 业务层 Service
-        ↙（高并发查询）        ↘（耗时任务）
-    Redis 缓存架构          RabbitMQ 消息队列
-                                        ↓
-                            消费者 Service → AI问答/数据处理 → Redis
-数据库层 MySQL ←———————————— 定时任务（数据同步）
+```mermaid
+flowchart LR
+    Client["客户端 / k6"] --> Nginx["Nginx<br/>轮询 · 故障重试"]
+    Nginx --> App1["应用实例 :8080"]
+    Nginx --> App2["应用实例 :8081"]
+    App1 --> Redis[("Redis<br/>库存 · 幂等 · 令牌桶")]
+    App2 --> Redis
+    App1 --> MQ[["RabbitMQ<br/>削峰队列"]]
+    App2 --> MQ
+    MQ --> Consumer["消费端<br/>手动 ack · 退避重试"]
+    Consumer --> MySQL[("MySQL<br/>orders · 唯一索引")]
+    Consumer -. 重试耗尽 .-> DLQ[["死信队列 DLQ"]]
+    App1 --> MySQL
+    App2 --> MySQL
 ```
 
-### 前端架构
+应用是**无状态**的：库存、幂等键、登录态全在 Redis/MySQL/MQ，所以 Nginx 用默认轮询即可，
+不需要粘性会话；杀掉一个实例，另一个照常服务。
 
-```
-前端静态页面（HTML + CSS + JS）
-        ↓ Ajax请求
-代理服务器（Node.js :8888）
-        ↓ 转发
-后端API服务器（Spring Boot :8080）
-```
+---
 
-### 前端页面结构
+## 核心链路：一次秒杀
 
-```
-frontend/
-├── index.html          # 首页（产品展示、AI问答入口）
-├── products.html       # 产品中心（分类筛选、产品列表）
-├── product-detail.html # 产品详情（轮播图、标签、详情）
-├── admin.html          # 管理后台（产品/分类/图片管理）
-├── login.html          # 登录页面
-├── proxy-server.js     # 代理服务器（解决跨域问题）
-├── css/                # 样式文件
-├── js/                 # JavaScript库
-├── fontawesome-5.5/    # 图标库
-├── slick/              # 轮播组件
-├── magnific-popup/     # 弹窗组件
-└── img/                # 默认图片资源
-```
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as 客户端
+    participant N as Nginx
+    participant A as 订单服务
+    participant R as Redis(Lua)
+    participant Q as RabbitMQ
+    participant K as 消费端
+    participant D as MySQL
 
-## 🚀 核心功能模块
+    C->>N: POST /api/order/seckill/{actId}?requestId=...
+    N->>A: 轮询转发
+    A->>R: EVALSHA seckill.lua
+    Note over R: 幂等 → 限流 → 时间窗 → 库存 → 限购 → 扣减<br/>在 Redis 内部一次原子执行
+    R-->>A: 0 成功 / 7 重复请求 / 1 已售罄
+    A->>Q: publish 订单消息
+    A-->>C: 排队中 + orderNo（先给单号，不等落库）
 
-### 1. 用户认证模块
-- JWT 无状态登录、接口鉴权、统一身份认证
-- 除公开接口外，所有接口需携带 Token 访问
-
-### 2. 产品管理模块
-- 产品 **CRUD** 操作、分页查询、详情查询
-- 热点商品 Redis 缓存，性能大幅提升
-- 增删改自动更新缓存，保证数据一致性
-- 产品分类动态关联，支持分类筛选
-
-### 3. 分类管理模块
-- 产品分类 **CRUD** 操作
-- 分类与产品关联管理
-- 支持按分类筛选产品列表
-
-### 4. 高并发缓存模块
-- 解决 **缓存穿透、缓存雪崩、缓存击穿** 三大经典问题
-- Redis 混合持久化，重启不丢失数据
-- 互斥锁、空值缓存、随机过期时间全面防护
-
-### 5. RabbitMQ 异步消息模块
-- AI 智能问答异步消费，接口秒级响应
-- 消息削峰，高并发下系统稳定不崩溃
-- 自动确认机制，适配临时业务消息场景
-
-### 6. RAG 智能问答模块
-- 基于业务数据的智能问答，不编造内容
-- 异步队列执行，不影响主线程性能
-- 支持并发多用户问答，结果自动存入 Redis
-
-### 7. 图片上传管理模块
-- **主页图上传**：`/api/upload/home` - 网站轮播图
-- **产品封面图**：`/api/upload/product/cover` - 产品缩略图
-- **产品详情图**：`/api/upload/product/images` - 产品详情轮播图
-- **目录结构**：`/uploads/product/[分类名称]/[产品ID]/`
-- **命名规则**：封面图固定 `main.jpg`，详情图 `001.jpg`, `002.jpg`...
-
-### 8. 定时数据同步模块
-- 定时将 Redis 统计数据同步至 MySQL
-- 事务保证数据原子性，最终一致性
-
-## 📖 接口文档
-
-### 基础约定
-
-- **接口前缀**：`/api`
-- **统一返回格式**
-```json
-{ "code": 200, "msg": "操作成功", "data": {} }
-```
-- **认证规则**：请求头携带 `Authorization: {Token}`（登录/产品列表/AI接口除外）
-
-### 接口列表
-
-#### 用户模块
-
-| 接口地址 | 请求方式 | 功能说明 | 认证 |
-|----------|----------|----------|------|
-| `/api/user/login` | POST | 用户登录（获取JWT令牌）| 否 |
-
-#### 产品模块
-
-| 接口地址 | 请求方式 | 功能说明 | 认证 |
-|----------|----------|----------|------|
-| `/api/product/list` | GET | 查询全部产品 | 否 |
-| `/api/product/page` | GET | 产品分页查询 | 否 |
-| `/api/product/{id}` | GET | 根据ID查询产品详情 | 否 |
-| `/api/product/add` | POST | 新增产品 | 是 |
-| `/api/product/update` | PUT | 修改产品 | 是 |
-| `/api/product/{id}` | DELETE | 删除产品 | 是 |
-
-#### 分类模块
-
-| 接口地址 | 请求方式 | 功能说明 | 认证 |
-|----------|----------|----------|------|
-| `/api/category/list` | GET | 查询所有分类 | 否 |
-| `/api/category/{id}` | GET | 根据ID查询分类 | 否 |
-| `/api/category/add` | POST | 新增分类 | 是 |
-| `/api/category/update` | PUT | 修改分类 | 是 |
-| `/api/category/{id}` | DELETE | 删除分类 | 是 |
-
-#### 图片上传模块
-
-| 接口地址 | 请求方式 | 功能说明 | 认证 |
-|----------|----------|----------|------|
-| `/api/upload/home` | POST | 上传主页图 | 是 |
-| `/api/upload/product/cover` | POST | 上传产品封面图 | 是 |
-| `/api/upload/product/images` | POST | 上传产品详情图（批量）| 是 |
-
-#### AI 问答模块
-
-| 接口地址 | 请求方式 | 功能说明 | 认证 |
-|----------|----------|----------|------|
-| `/api/ai/chat` | POST | RAG智能问答（异步）| 否 |
-| `/api/ai/result/{visitorId}` | GET | 查询问答结果 | 否 |
-
-### AI 问答请求参数
-
-```json
-{
-  "message": "推荐一款性价比高的蓝牙音响",
-  "visitorId": "user_abc123"
-}
+    Q->>K: deliver（prefetch=10）
+    K->>D: INSERT orders + 条件 UPDATE 库存
+    D-->>K: 成功 / 1062 唯一键冲突
+    alt 成功
+        K->>Q: 手动 ACK
+    else 撞 uk_order_no（重复投递）
+        K->>Q: 手动 ACK（订单已存在）
+    else 撞 uk_user_request（真实冲突）
+        K->>R: 回滚名额（INCR + HDEL）
+        K->>Q: 手动 ACK
+    else 其它异常
+        K->>Q: 退避重试 1/2/4/8 秒，耗尽进 DLQ
+    end
 ```
 
-### 图片上传请求参数
+> 可交互版本（带代码位置溯源）：[`docs/diagrams/seckill-sequence.html`](docs/diagrams/seckill-sequence.html)
+> 源文件：[`docs/diagrams/seckill-sequence.json`](docs/diagrams/seckill-sequence.json)
 
-#### 上传主页图
-```
-POST /api/upload/home
-Content-Type: multipart/form-data
+---
 
-file: [图片文件]
-```
+## 四个关键设计
 
-#### 上传产品封面图
-```
-POST /api/upload/product/cover
-Content-Type: multipart/form-data
+### 1. 库存一致性：Redis 扣"名额"，MySQL 记"账本"
 
-categoryName: 蓝牙音箱
-productId: 1
-file: [图片文件]
-```
+- 库存的**唯一权威**在 Redis（`audio:seckill:stock:{actId}`），扣减在 Lua 里完成，
+  检查和扣减之间没有窗口，因此不会超卖。
+- MySQL 里的 `stock` 是**账本**，由消费端在事务里做条件 UPDATE（`WHERE stock >= n`）。
+- 一旦 DB 侧判定为「真实冲突」，必须把 Redis 名额加回去 —— 否则名额凭空消失，
+  表现为"明明没卖完却抢不到"。
 
-#### 上传产品详情图
-```
-POST /api/upload/product/images
-Content-Type: multipart/form-data
+### 2. 幂等的三道闸
 
-categoryName: 蓝牙音箱
-productId: 1
-file: [图片文件1]
-file: [图片文件2]
-file: [图片文件3]
-```
+| 闸 | 位置 | 作用 |
+|---|---|---|
+| ① 只读快路径 | Lua 开头 `GET` 幂等键 | 重复请求立刻返回上次的 orderNo，不消耗令牌、不碰库存 |
+| ② 幂等键写入 | Lua 尾部 `SET NX` | 写成功才算"第一次"，写失败说明并发重复 |
+| ③ 数据库唯一索引 | `uk_user_request` / `uk_order_no` | 兜住绕过 Redis 的重复（消息重投、重试） |
 
-## 🖥️ 环境部署
+### 3. 削峰与兜底：MQ + 手动 ack + 重试 + 死信
 
-### 环境要求
+- 请求线程只做 Redis 那一下，落库交给消费端 —— **响应时间不再被数据库决定**。
+- **手动 ack**：处理成功才确认；进程崩了消息会回队列重投（不丢），代价是可能重复消费，
+  由第 2 点的第三道闸兜住。这两件事是配套的。
+- 失败退避 1/2/4/8 秒，重试耗尽进死信队列，不阻塞后面的消息。
 
-- JDK 21（必须）
-- MySQL 8.0+
-- Redis 7.0+
-- RabbitMQ 3.12+
-- Maven 3.6+
-- Node.js 18+（前端代理服务器）
+### 4. 无状态多实例
 
-### 后端本地启动步骤
+- 所有状态外置，两个 JVM 共享 Redis/MySQL/MQ。
+- Nginx 轮询 + `max_fails=3 fail_timeout=5s`：杀掉一个实例，**30 次请求全部成功**，
+  切换代价约 2 ms，实例恢复后自动回到轮询。
+- 双实例是为了**可用性**，不是为了吞吐 —— 实测 200 并发下，单实例和双实例都是约 1 万 QPS，
+  瓶颈在共享的 Redis/连接上。
 
-1. **创建数据库**
-```sql
-CREATE DATABASE audio_db CHARACTER SET utf8mb4;
-```
+---
 
-2. **执行 SQL 脚本**，初始化数据表（参考 final.sql 文件）
+## 实测数据
 
-3. **确保配置文件正确** `src/main/resources/application.yml`
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/audio_db
-    username: root
-    password: Zou1218yu
-  redis:
-    host: localhost
-  rabbitmq:
-    host: 106.54.35.197  # RabbitMQ服务器地址
-```
+| 场景 | 吞吐 | 平均延迟 | 瓶颈 |
+|---|---|---|---|
+| 本机 8C16T，200 并发，纯读 | **10,900 QPS** | 18.6 ms | Redis 往返 / 连接 |
+| 本机同一接口，日志级别 DEBUG | 3,883 QPS | — | **日志同步写盘**（压在请求线程上） |
+| 4 核云服务器，回环直连应用 | **7,214 QPS** | 14.2 ms | 4 核 CPU 打满 |
+| 4 核云服务器，回环经 Nginx | 5,159 QPS | 19.8 ms | 同上 + Nginx 开销（约 28%） |
+| 4 核云服务器，公网 3 Mbps | 419 QPS | 510 ms | **公网带宽** |
 
-4. **启动后端服务**
+> 不同环境的数字**不能直接比较**：一个是 16 线程无争抢，一个是 4 核里近一半被压测工具占用，
+> 还有一个卡在 3 Mbps 的带宽上。所以简历上不写绝对 QPS。
+>
+> 一条经验：`吞吐 = 并发 ÷ 延迟`（Little's law）只在没撞到带宽上限时成立。
+> 先算"这条管道每秒能吐多少字节"，那个才是真天花板。
+
+---
+
+## 快速开始（本地）
+
+### 1. 起中间件
+
 ```bash
-cd audiobackend
+# MySQL 用 3307，避免和本机已有的 3306 冲突
+docker run -d --name audio-mall-mysql -p 3307:3306 \
+  -e MYSQL_ROOT_PASSWORD=root123456 -e MYSQL_DATABASE=audio_mall \
+  mysql:8.0
+
+docker run -d --name audio-mall-redis -p 6379:6379 \
+  redis:7.4-alpine redis-server --requirepass redis123456 --appendonly yes
+
+docker run -d --name audio-mall-rabbitmq -p 5672:5672 -p 15672:15672 \
+  -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin123456 \
+  rabbitmq:management
+```
+
+### 2. 建表
+
+```bash
+docker exec -i audio-mall-mysql mysql -uroot -proot123456 --default-character-set=utf8mb4 audio_mall < sql/01-init.sql
+docker exec -i audio-mall-mysql mysql -uroot -proot123456 --default-character-set=utf8mb4 audio_mall < sql/02-order.sql
+# 可选：压测用商品数据
+docker exec -i audio-mall-mysql mysql -uroot -proot123456 --default-character-set=utf8mb4 audio_mall < sql/03-loadtest-data.sql
+```
+
+### 3. 配置
+
+```bash
+# application.yml 含本地密码，不进版本库，从模板复制
+cp src/main/resources/application.yml.example src/main/resources/application.yml
+```
+
+### 4. 启动
+
+```bash
 mvn spring-boot:run
+# 或
+mvn -q -DskipTests package
+java -jar target/audiobackend-0.0.1-SNAPSHOT.jar
 ```
-或运行 `AudiobackendApplication.java` 主类
 
-5. **访问地址**：`http://localhost:8080`
+首次启动会自动创建管理员 `admin / admin123`（`DataInitializer`）。
 
-### 多环境打包部署（Maven Profiles）
+### 5. 冒烟
 
-项目支持 **开发环境(dev)** 和 **生产环境(prod)** 一键切换。
+```bash
+curl 'http://localhost:8080/api/product/page?pageNum=1&pageSize=3'
+curl 'http://localhost:8080/api/seckill/1'
+```
 
-#### 配置文件结构
+### 6. 集成测试
+
+```bash
+mvn -q test -Dtest=SeckillIT   # 4 条：重复提交 / 50 线程并发重复 / 索引冲突回滚 / 100 库存 200 并发不超卖
+```
+
+---
+
+## 目录结构
 
 ```
+src/main/java/com/example/audiobackend/
+├── controller/      接口层
+├── service/impl/    业务实现（秒杀、订单、支付、商品、用户、上传）
+├── listener/        MQ 消费者（手动 ack + 重试 + 死信）
+├── mapper/          MyBatis 接口
+├── interceptor/     JWT 拦截器
+├── config/          配置（数据初始化、MQ 声明、上传映射）
+├── task/            定时任务（订单超时关闭、活动结束）
+└── common/          统一响应、异常处理
+
 src/main/resources/
-├── application.yml          # 主配置文件（通用配置）
-├── application-dev.yml      # 开发环境配置（默认）
-└── application-prod.yml     # 生产环境配置
+├── lua/seckill.lua      秒杀原子脚本（限流 / 时间窗 / 库存 / 限购 / 幂等）
+├── mapper/*.xml         SQL 映射
+├── application.yml      本地配置（不进版本库）
+└── application-prod.yml 生产配置（占位符全部来自环境变量）
+
+docs/        实验与部署记录
+deploy/      生产部署编排（Compose / systemd / Nginx）
+loadtest/    k6 压测脚本与数据重置脚本
+sql/         建表与种子数据
+frontend/    早期静态站点（本次后端重构未使用）
 ```
 
-#### 打包命令
+---
 
-```bash
-# 开发环境打包（默认，使用本地配置）
-mvn clean package -DskipTests
+## 文档索引
 
-# 生产环境打包（使用生产配置）
-mvn clean package -DskipTests -Pprod
-```
+| 文档 | 内容 |
+|---|---|
+| [docs/可靠性实验.md](docs/可靠性实验.md) | 关掉 Redis / MySQL 会怎样，以及改前改后的对比 |
+| [docs/瓶颈定位实验.md](docs/瓶颈定位实验.md) | 那条被推翻的"瓶颈是 Redis"结论，和真正的元凶 |
+| [docs/双实例实验.md](docs/双实例实验.md) | 双实例 + Nginx，含故障切换实测 |
+| [docs/压测记录.md](docs/压测记录.md) | 从 3,883 到 10,900，以及真实服务器上的重测 |
+| [docs/集成测试.md](docs/集成测试.md) | 4 条并发正确性测试 |
+| [docs/部署记录.md](docs/部署记录.md) | 生产部署步骤、踩过的坑、容量结论 |
+| [docs/简历素材.md](docs/简历素材.md) | 简历怎么写、面试怎么答（自用） |
+| [ISSUES.md](ISSUES.md) | 已知问题与决定不改的理由 |
 
-#### 生产环境启动
+---
 
-```bash
-# 设置环境变量（敏感信息）
-export DB_PASSWORD=your-db-password
-export REDIS_PASSWORD=your-redis-password
-export RABBITMQ_USER=your-rabbitmq-user
-export RABBITMQ_PASS=your-rabbitmq-password
+## 已知限制
 
-# 启动应用（自动读取application-prod.yml）
-java -jar audiobackend-0.0.1-SNAPSHOT.jar
-```
-
-#### 生产环境配置说明（application-prod.yml）
-
-| 配置项 | 来源 | 说明 |
-|--------|------|------|
-| 数据库密码 | `${DB_PASSWORD}` | 环境变量 |
-| Redis密码 | `${REDIS_PASSWORD}` | 环境变量 |
-| RabbitMQ用户 | `${RABBITMQ_USER}` | 环境变量 |
-| RabbitMQ密码 | `${RABBITMQ_PASS}` | 环境变量 |
-| 文件上传路径 | `/var/www/audiobackend/uploads` | 绝对路径 |
-| 日志文件 | `/var/log/audiobackend/` | 绝对路径 |
-
-### 前端启动步骤
-
-1. **安装依赖**（如果使用代理服务器）
-```bash
-cd frontend
-npm install
-```
-
-2. **启动代理服务器**
-```bash
-cd frontend
-node proxy-server.js
-```
-
-3. **访问地址**：`http://localhost:8888/`
-
-### 前端页面访问说明
-
-| 页面 | 地址 | 说明 |
-|------|------|------|
-| 首页 | http://localhost:8888/index.html | 产品展示、AI问答入口 |
-| 产品中心 | http://localhost:8888/products.html | 分类筛选、产品列表 |
-| 产品详情 | http://localhost:8888/product-detail.html?id=1 | 产品轮播图、详情、标签 |
-| 管理后台 | http://localhost:8888/admin.html | 产品/分类/图片管理（需登录）|
-| 登录页面 | http://localhost:8888/login.html | 管理员登录 |
-
-**注意**：前端必须通过代理服务器访问，不能直接用 file:// 协议打开 HTML 文件，否则 Ajax 请求会失败。
-
-### 默认账号
-
-- 用户名：`admin`
-- 密码：`admin123`
-
-## 📁 项目结构
-
-```
-audiobackend/
-├── frontend/                     # 前端静态资源
-│   ├── index.html               # 首页
-│   ├── products.html            # 产品中心
-│   ├── product-detail.html      # 产品详情页
-│   ├── admin.html               # 管理后台
-│   ├── login.html               # 登录页
-│   ├── proxy-server.js          # 代理服务器
-│   ├── css/                     # 样式文件
-│   ├── js/                      # JavaScript库
-│   └── img/                     # 图片资源
-│
-├── src/main/java/               # 后端Java代码
-│   └── com.example.audiobackend
-│       ├── AudiobackendApplication.java  # 启动类
-│       ├── controller/          # 控制层
-│       │   ├── UserController.java
-│       │   ├── ProductController.java
-│       │   ├── ProductCategoryController.java
-│       │   ├── AiController.java
-│       │   └── UploadController.java
-│       ├── service/            # 业务层
-│       │   ├── impl/
-│       │   └── ...
-│       ├── mapper/             # 数据访问层
-│       ├── entity/             # 实体类
-│       ├── config/             # 配置类
-│       ├── interceptor/        # 拦截器
-│       ├── rabbitmq/           # 消息队列
-│       └── util/               # 工具类
-│
-├── src/main/resources/          # 配置文件
-│   ├── application.yml          # 主配置文件
-│   ├── application-dev.yml      # 开发环境配置
-│   ├── application-prod.yml     # 生产环境配置
-│   └── logback-spring.xml
-│
-└── pom.xml                     # Maven配置（含多环境Profiles）
-```
-
-## 💡 核心技术亮点
-
-### 1. 高并发缓存解决方案
-采用旁路缓存模式，结合空值缓存、互斥锁、随机过期时间，彻底解决三大缓存问题，Redis 混合持久化保证数据安全。
-
-### 2. RabbitMQ 异步削峰
-耗时 AI 问答任务交由消息队列异步处理，接口不阻塞，高并发下系统吞吐量提升 80%。
-
-### 3. 自定义线程池隔离
-异步任务与主线程隔离，避免线程耗尽，保证核心接口可用性。
-
-### 4. RAG 智能问答
-基于业务数据检索生成回答，SQL 安全校验，支持多用户并发问答。
-
-### 5. 图片上传管理
-- 分类名称目录存储，便于管理
-- 详情图自动编号，每个产品独立计数
-- 支持批量上传，统一返回 URL 列表
-
-### 6. 生产级工程规范
-统一响应、全局异常、JWT 鉴权、事务控制，符合企业开发标准。
-
-### 7. Maven 多环境打包
-使用 Maven Profiles 实现开发/生产环境配置分离，一键切换无忧部署。
-
-## ⚠️ 注意事项
-
-1. 商品详情启用 Redis 缓存，商品列表不缓存，兼顾性能与一致性
-2. 增删改操作遵循 **先更新数据库，后删除缓存** 策略
-3. AI 问答为 **RabbitMQ 异步消费**，接口响应不代表处理完成
-4. Redis 开启 RDB+AOF 持久化，服务重启数据可自动恢复
-5. 定时任务自动执行，无需手动调用，保证数据最终一致
-6. 高并发场景下，消息队列自动削峰，保障系统稳定性
-7. 前端必须通过代理服务器（:8888）访问，不能直接打开 HTML 文件
-8. 图片上传前需先保存产品基础信息获取产品ID
-9. 图片路径使用**分类名称**作为目录，便于理解和维护
-10. 生产环境打包使用 `mvn clean package -Pprod`，敏感信息通过环境变量传入
-
-## 📊 数据库表结构
-
-### product 产品表
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT | 主键，自增 |
-| name | VARCHAR(100) | 产品名称 |
-| price | DOUBLE | 价格 |
-| description | VARCHAR(500) | 产品简介 |
-| image_url | VARCHAR(200) | 封面图URL |
-| view_count | INT | 浏览量 |
-| category_id | INT | 分类ID |
-| image_list | TEXT | 详情图URL列表（逗号分隔）|
-| tags | VARCHAR(200) | 产品标签 |
-| detail | TEXT | 产品详情（纯文本）|
-| is_delete | TINYINT | 软删除标记 |
-| create_time | DATETIME | 创建时间 |
-| update_time | DATETIME | 更新时间 |
-
-### product_category 分类表
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT | 主键，自增 |
-| name | VARCHAR(50) | 分类名称 |
-| create_time | DATETIME | 创建时间 |
-| update_time | DATETIME | 更新时间 |
-
-### sys_user 用户表
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | BIGINT | 主键，自增 |
-| username | VARCHAR(50) | 用户名 |
-| password | VARCHAR(100) | 密码（加密存储）|
-| create_time | DATETIME | 创建时间 |
-
-## 📝 更新日志
-
-### v1.2.0 (2026-05-06)
-- 新增 Maven Profiles 多环境打包支持
-- 新增 application-prod.yml 生产环境配置
-- 支持环境变量配置敏感信息（数据库密码、Redis密码等）
-- 更新部署文档，支持开发/生产环境一键切换
-
-### v1.1.0 (2026-05-03)
-- 新增图片上传功能模块
-- 新增产品分类管理功能
-- 修复产品详情页 detail 字段不显示问题
-- 优化前端管理页面交互体验
-- 更新 README 文档
+| 限制 | 说明 |
+|---|---|
+| `requestId` 目前可选 | Nginx 重试时同一个 POST 可能被处理两次；生产应改为必填 |
+| 死信队列没有监控/重放工具 | 消息进 DLQ 目前没人知道 |
+| 消费端吞吐约 29 单/秒 | 受 `UPDATE seckill_activity WHERE id=1` 的行锁限制，是真瓶颈 |
+| 单机部署 | 进程级故障靠重启拉起，机器级故障没有备份 |
+| 定时任务多实例会重复触发 | 用条件 UPDATE 保证正确性，属于浪费而非错误（见 ISSUES.md） |

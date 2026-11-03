@@ -1,2 +1,5 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+# 生成的图按二进制处理：换行符转换会让内嵌的 sha256 溯源对不上
+docs/diagrams/*.html -text
